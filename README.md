@@ -22,36 +22,15 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
     - `username`: Username of the user.
     - `email`: Email address of the user.
     - `profilePicture`: URL of the user's profile picture.
+    - `posts`: Array of post IDs created by the user.
+    - `favorites`: Array of post IDs favorited by the user.
+    - `likes`: Array of post IDs liked by the user.
+    - `comments`: Array of comment IDs made by the user.
   - **CRUD Operations:** 
     - **Create:** on signup
     - **Read:** profile view
-    - **Update:** edit profile
+    - **Update:** edit profile, manage arrays (add/remove post IDs, favorite post IDs, liked post IDs, comment IDs)
     - **Delete:** delete profile
-  - **Subcollections:**
-    - **Posts:** Stores references to travel posts created by the user.
-      - **Fields:** `postId`: Unique identifier for the post.
-      - **CRUD Operations:** 
-        - **Create:** add post reference
-        - **Read:** view user's posts
-        - **Delete:** remove post reference
-    - **Favorites:** Stores references to posts that the user has favorited.
-      - **Fields:** `postId`: Unique identifier for the favorited post.
-      - **CRUD Operations:** 
-        - **Create:** add post to favorites
-        - **Read:** view user's favorite posts
-        - **Delete:** remove post from favorites
-    - **Likes:** Stores references to posts that the user has liked.
-      - **Fields:** `postId`: Unique identifier for the liked post.
-      - **CRUD Operations:** 
-        - **Create:** add post to likes
-        - **Read:** view user's liked posts
-        - **Delete:** remove post from likes
-    - **Comments:** Stores references to comments made by the user.
-      - **Fields:** `commentId`: Unique identifier for the comment.
-      - **CRUD Operations:** 
-        - **Create:** add comment reference
-        - **Read:** view user's comments
-        - **Delete:** remove comment reference
 
 - **Posts:** Collection of travel posts created by users.
   - **Fields:** 
@@ -63,8 +42,8 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
     - `coordinates`: Geographical coordinates of the destination.
     - `favoritesCount`: Number of times the post has been favorited.
     - `likesCount`: Number of times the post has been liked.
-    - `favoritedBy`: Array of userIds who have favorited the post.
-    - `likedBy`: Array of userIds who have liked the post.
+    - `favoritedBy`: Array of user IDs who have favorited the post.
+    - `likedBy`: Array of user IDs who have liked the post.
   - **CRUD Operations:** 
     - **Create:** post creation
     - **Read:** view posts

@@ -1,4 +1,4 @@
-import { db } from './firebaseSetUp';
+import { db } from './firebaseSetup';
 import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, increment, arrayUnion, arrayRemove, limit } from "firebase/firestore";
 import { addUserPost, removeUserPost } from './usersHelper';
 

@@ -11,6 +11,7 @@ import AddPostScreen from "./screens/AddPostScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import SettingScreen from "./screens/SettingScreen";
 import PostDetailsScreen from "./screens/PostDetailsScreen";
+import FavoritesScreen from "./screens/FavoritesScreen";
 // import { auth } from "./firebase";
 // import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
@@ -52,8 +53,8 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: "darkmagenta" },
-          headerTintColor: "white",
+          headerStyle: { backgroundColor: "white" },
+          headerTintColor: "black",
         }}
       >
         {/* {isUserAuthenticated ? ( */}
@@ -62,10 +63,15 @@ export default function App() {
           component={AppTabs}
           options={{ headerShown: false }}
         />
-         <Stack.Screen
+        <Stack.Screen
           name="PostDetailsScreen"
           component={PostDetailsScreen}
           options={{ headerShown: true }} // You can set this to false if you don't want a header for this screen
+        />
+        <Stack.Screen
+          name="FavoritesScreen"
+          component={FavoritesScreen}
+          options={{ headerShown: true }}
         />
         {/* ) : (
           <Stack.Screen

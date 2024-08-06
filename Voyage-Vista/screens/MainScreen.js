@@ -1,52 +1,36 @@
+// MainScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity } from 'react-native';
+import { View, FlatList } from 'react-native';
 import { db } from '../firebase/firebaseSetUp';
 import { collection, getDocs } from 'firebase/firestore';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import PostItem from '../components/PostItem';  // Import the reusable component
 
 const MainScreen = () => {
-  const [posts, setPosts] = useState([]);
-  const navigation = useNavigation(); // Get the navigation prop
+    const [posts, setPosts] = useState([]);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      const postsCollectionRef = collection(db, 'posts');
-      const querySnapshot = await getDocs(postsCollectionRef);
-      const postsList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setPosts(postsList);
-    };
+    useEffect(() => {
+        const fetchPosts = async () => {
+            const postsCollectionRef = collection(db, 'posts');
+            const querySnapshot = await getDocs(postsCollectionRef);
+            const postsList = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setPosts(postsList);
+        };
 
-    fetchPosts();
-  }, []);
+        fetchPosts();
+    }, []);
 
-  return (
-    <View>
-      <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('PostDetailsScreen', { postId: item.id })}
-          >
-            <View>
-              <Image source={{ uri: item.profilePicture }} />
-              <Text>{item.title}</Text>
-              <View>
-                {item.photos.slice(0, 4).map((photo, index) => (
-                  <Image key={index} source={{ uri: photo.url }} />
-                ))}
-              </View>
-              <Text>Favorites: {item.favoritesCount}</Text>
-              <Text>Likes: {item.likesCount}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
-    </View>
-  );
+    return (
+        <View>
+            <FlatList
+                data={posts}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => <PostItem post={item} />}
+            />
+        </View>
+    );
 };
 
 export default MainScreen;

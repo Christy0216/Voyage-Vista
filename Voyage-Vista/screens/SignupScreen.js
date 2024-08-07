@@ -48,7 +48,6 @@ export default function Signup({ navigation }) {
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <Text style={{ color: theme.textColor }}>Email</Text>
       <TextInput
-        style={styles.input}
         placeholder="Enter your email"
         value={email}
         onChangeText={setEmail}

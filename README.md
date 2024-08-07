@@ -24,9 +24,9 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
     - `email`: Email address of the user.
     - `profilePicture`: URL of the user's profile picture.
     - `birthday`: The Date time of the user's birthday.
-    - `posts`\*: Array of post IDs created by the user.
-    - `favorites`\*: Array of post IDs favorited by the user.
-    - `likes`\*: Array of post IDs liked by the user.
+    - `posts`: Array of post IDs created by the user.
+    - `favorites`: Array of post IDs favorited by the user.
+    - `likes`: Array of post IDs liked by the user.
     - `comments`\*: Array of comment IDs made by the user.
   - **CRUD Operations:**
     - **Create:** on signup
@@ -42,10 +42,10 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
     - `pictureUrl`\*: URL of the picture related to the post.
     - `createdAt`: Time when the post was created.
     - `coordinates`\*: Geographical coordinates of the destination.
-    - `favoritesCount`\*: Number of times the post has been favorited.
-    - `likesCount`\*: Number of times the post has been liked.
-    - `favoritedBy`\*: Array of user IDs who have favorited the post.
-    - `likedBy`\*: Array of user IDs who have liked the post.
+    - `favoritesCount`: Number of times the post has been favorited.
+    - `likesCount`: Number of times the post has been liked.
+    - `favoritedBy`: Array of user IDs who have favorited the post.
+    - `likedBy`: Array of user IDs who have liked the post.
   - **CRUD Operations:**
     - **Create:** post creation
     - **Read:** view posts
@@ -82,8 +82,8 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
 
 ### Contributions Summary:
 
-- **Shirui Chen:** Set up the initial project structure and navigation using React Navigation. Complete Screen designs and coding.
-- **Kai Zong:** Implemented the authentication and conncetion flow with Firebase, and CRUD operations in applications.
+- **Shirui Chen:** Set up the initial project structure and navigation using React Navigation. Complete Some Screen functionality coding and styling.[Login screen, Signup screen, Setting screen, Profile screen, Favorites screen]
+- **Kai Zong:** Implemented the authentication and conncetion flow with Firebase, and CRUD operations in applications. Complete Some Screen functionality coding and styling.[Main screen, Post Details screen, Add Post screen, Map screen, Weather Details screen ]
 
 ## Screenshots
 

@@ -1,10 +1,21 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+// SettingsScreen.js
+import React from 'react';
+import { View, Text, Switch } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+import { themes } from '../styles/themes';
 
-export default function SettingScreen() {
+
+const SettingsScreen = () => {
+  const { theme, toggleTheme } = useTheme();
   return (
-    <View>
-      <Text>SettingScreen</Text>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.backgroundColor }}>
+      <Text style={{ color: theme.textColor }}>Toggle Theme</Text>
+      <Switch
+        onValueChange={toggleTheme}
+        value={theme === themes.dark}
+      />
     </View>
-  )
-}
+  );
+};
+
+export default SettingsScreen;

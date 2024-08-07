@@ -12,6 +12,7 @@ import ProfileScreen from "./screens/ProfileScreen";
 import SettingScreen from "./screens/SettingScreen";
 import PostDetailsScreen from "./screens/PostDetailsScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
+import { ThemeProvider } from './context/ThemeContext';
 // import { auth } from "./firebase";
 // import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
@@ -50,6 +51,7 @@ export default function App() {
   // }, []);
 
   return (
+    <ThemeProvider>
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
@@ -82,5 +84,6 @@ export default function App() {
         )} */}
       </Stack.Navigator>
     </NavigationContainer>
+    </ThemeProvider>
   );
 }

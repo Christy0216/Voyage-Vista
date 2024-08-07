@@ -1,0 +1,1 @@
+export const defaultPicture = "https://via.placeholder.com/100"

@@ -13,8 +13,8 @@ import { useTheme } from "../context/ThemeContext";
 import { auth } from "../firebase/firebaseSetUp";
 import { getUser, updateUser } from "../firebase/firebaseUserHelper";
 import { onAuthStateChanged } from "firebase/auth";
+import { defaultPicture } from "../reusables/objects";
 
-const defaultImage = "https://via.placeholder.com/100";
 
 const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState({
@@ -73,7 +73,7 @@ const ProfileScreen = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <TouchableOpacity onPress={handleEditProfilePicture}>
         <Image
-          source={{ uri: user.profilePicture || defaultImage }}
+          source={{ uri: user.profilePicture || defaultPicture }}
           style={styles.profilePicture}
         />
       </TouchableOpacity>

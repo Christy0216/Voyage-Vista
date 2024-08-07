@@ -1,6 +1,6 @@
 import { db, auth } from './firebaseSetUp';
 import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, increment, arrayUnion, arrayRemove, limit } from "firebase/firestore";
-import { addUserPost, removeUserPost } from './firebaseUserHelper';
+import { addUserPost, removeUserPost, getUser } from './firebaseUserHelper';
 
 // Helper function to delete documents in a subcollection in batches
 const deleteSubcollectionInBatches = async (postId, subcollectionName, batchSize = 500) => {
@@ -65,18 +65,17 @@ export const getPostWithUserDetails = async (postId) => {
           console.log('User ID not found in post data.');
           return null;
         }
+         // Assuming the post data includes uid
+        const userDoc = await getUser(postData.uid);
   
-        const userDocRef = doc(db, 'users', postData.uid); // Assuming the post data includes uid
-        const userDoc = await getDoc(userDocRef);
-  
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
+        if (userDoc) {
+          // const userData = userDoc.data();
           return {
             post: {
               id: postDoc.id,
               ...postData,
-              userName: userData.username || 'Unknown', // Assuming the user's name is stored under 'name'
-              userProfilePicture: userData.profilePicture || '', // Assuming the user's profile picture URL is stored under 'profilePicture'
+              userName: userDoc.username || 'Unknown', // Assuming the user's name is stored under 'name'
+              userProfilePicture: userDoc.profilePicture || '', // Assuming the user's profile picture URL is stored under 'profilePicture'
               photos: postData.photos || [] // Default value if photos are missing
             }
           };

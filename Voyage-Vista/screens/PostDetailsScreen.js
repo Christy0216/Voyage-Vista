@@ -11,16 +11,16 @@ const PostDetailsScreen = ({ route }) => {
   const [liked, setLiked] = useState(false);
   const [favorited, setFavorited] = useState(false);
 
-    useEffect(() => {
-        const fetchDetails = async () => {
-            const details = await getPostWithUserDetails(postId);
-            if (details) {
-                setPostDetails(details.post);
-            }
-            setLoading(false);
-        };
-        fetchDetails();
-    }, [postId]);
+  useEffect(() => {
+    const fetchDetails = async () => {
+      const details = await getPostWithUserDetails(postId);
+      if (details) {
+        setPostDetails(details.post);
+      }
+      setLoading(false);
+    };
+    fetchDetails();
+  }, [postId]);
 
   const toggleLike = () => {
     setLiked(!liked);
@@ -39,41 +39,22 @@ const PostDetailsScreen = ({ route }) => {
     );
   }
 
-    if (!postDetails) {
-        return (
-            <View style={[styles.loadingContainer, { backgroundColor: theme.backgroundColor }]}>
-                <Text style={{ color: theme.textColor }}>Post not found</Text>
-            </View>
-        );
-    }
-
-
+  if (!postDetails) {
     return (
-        <ScrollView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
-            <View style={styles.userContainer}>
-                {postDetails.userProfilePicture && (
-                    <Image source={{ uri: postDetails.userProfilePicture }} style={styles.userImage} />
-                )}
-                <Text style={[styles.userName, { color: theme.textColor }]}>{postDetails.userName}</Text>
-            </View>
-            {postDetails.story && <Text style={[styles.story, { color: theme.textColor }]}>{postDetails.story}</Text>}
-            <Text style={[styles.text, { color: theme.textColor }]}>Address Type: {postDetails.addressType}</Text>
-            <Text style={[styles.text, { color: theme.textColor }]}>Likes: {postDetails.likesCount || 0}</Text>
-            <Text style={[styles.text, { color: theme.textColor }]}>Comments: {postDetails.commentsCount || 0}</Text>
-            <Text style={[styles.text, { color: theme.textColor }]}>Favorites: {postDetails.favoritesCount || 0}</Text>
-            {postDetails.photos && postDetails.photos.length > 0 && postDetails.photos.map((photo, index) => (
-                <Image key={index} source={{ uri: photo.url }} style={styles.postImage} />
-            ))}
-        </ScrollView>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.backgroundColor }]}>
+        <Text style={{ color: theme.textColor }}>Post not found</Text>
+      </View>
     );
   }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
-      {postDetails.userProfilePicture && (
-        <Image source={{ uri: postDetails.userProfilePicture }} style={styles.userImage} />
-      )}
-      <Text style={[styles.userName, { color: theme.textColor }]}>{postDetails.userName}</Text>
+      <View style={styles.userContainer}>
+        {postDetails.userProfilePicture && (
+          <Image source={{ uri: postDetails.userProfilePicture }} style={styles.userImage} />
+        )}
+        <Text style={[styles.userName, { color: theme.textColor }]}>{postDetails.userName}</Text>
+      </View>
       {postDetails.story && <Text style={[styles.story, { color: theme.textColor }]}>{postDetails.story}</Text>}
       <Text style={[styles.text, { color: theme.textColor }]}>Address Type: {postDetails.addressType}</Text>
       <Text style={[styles.text, { color: theme.textColor }]}>Likes: {postDetails.likesCount || 0}</Text>
@@ -152,4 +133,3 @@ const styles = StyleSheet.create({
 });
 
 export default PostDetailsScreen;
-

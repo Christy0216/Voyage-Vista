@@ -6,7 +6,7 @@ import PostItem from '../components/PostItem';
 import { useTheme } from '../context/ThemeContext';
 import { getUser } from '../firebase/firebaseUserHelper';
 import { auth } from '../firebase/firebaseSetUp';
-import {defaultPicture} from '../reusables/objects';
+import { defaultPicture } from '../reusables/objects';
 
 const MainScreen = () => {
     const [posts, setPosts] = useState([]);
@@ -26,10 +26,16 @@ const MainScreen = () => {
         fetchProfilePhoto();
 
         const postsCollectionRef = collection(db, 'posts');
-        const unsubscribe = onSnapshot(postsCollectionRef, (snapshot) => {
-            const postsList = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
+        const unsubscribe = onSnapshot(postsCollectionRef, async (snapshot) => {
+            const postsList = await Promise.all(snapshot.docs.map(async doc => {
+                const postData = doc.data();
+                const userData = await getUser(postData.uid);
+                return {
+                    id: doc.id,
+                    ...postData,
+                    userName: userData ? userData.name : 'Unknown',
+                    userProfilePicture: userData ? userData.profilePicture || defaultPicture : defaultPicture
+                };
             }));
             setPosts(postsList);
         });
@@ -58,13 +64,13 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     profileContainer: {
-        alignItems: 'center',
+        alignItems: 'flex-start',
         margin: 20,
     },
     profileImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
     },
 });
 

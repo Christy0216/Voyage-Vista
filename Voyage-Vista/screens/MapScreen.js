@@ -3,7 +3,7 @@ import { View, Text, Button, TouchableOpacity } from 'react-native';
 import CitySelectionModal from '../modal/CitySelectionModal';
 
 const MapScreen = ({ navigation }) => {
-  const [city, setCity] = useState('Unknown City');
+  const [city, setCity] = useState('Vancouver');
   const [isModalVisible, setModalVisible] = useState(false);
 
   const handleOpenModal = () => {

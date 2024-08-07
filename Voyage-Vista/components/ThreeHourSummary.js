@@ -4,7 +4,9 @@ import { View, Text } from 'react-native';
 const ThreeHourSummary = ({ summary }) => {
   return (
     <View>
-      <Text>{summary}</Text>
+      <Text>{summary.dt_txt}</Text>
+      <Text>Temperature: {summary.main.temp}°C</Text>
+      <Text>Condition: {summary.weather[0].description}</Text>
     </View>
   );
 };

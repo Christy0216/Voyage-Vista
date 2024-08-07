@@ -78,14 +78,16 @@ export const getUser = async (userId) => {
 };
 
 // Update a user profile
-export const updateUser = async (docId, updatedFields) => {
-  try {
-    await updateDoc(doc(db, 'users', docId), updatedFields);
-    console.log('User updated successfully');
-  } catch (error) {
-    console.log('Error updating user: ', error);
-  }
-};
+export const updateUser = async (docId, userData) => {
+    try {
+      const userRef = doc(db, 'users', docId);
+      await updateDoc(userRef, userData);
+      console.log('User updated successfully');
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw new Error(error);
+    }
+  };
 
 // Add a post reference to a user
 export const addUserPost = async (userId, postId) => {

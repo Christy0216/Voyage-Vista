@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,19 +6,47 @@ import {
   Image,
   TouchableOpacity,
   TextInput,
+  StyleSheet,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "../context/ThemeContext";
+import { auth } from "../firebase/firebaseSetUp";
+import { getUser, updateUser } from "../firebase/firebaseUserHelper";
+import { onAuthStateChanged } from "firebase/auth";
+
+const defaultImage = "https://via.placeholder.com/100";
 
 const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState({
-    username: "John Doe",
-    birthday: new Date(1990, 0, 1),
-    profilePicture: "https://via.placeholder.com/100",
+    userId: "",
+    username: "",
+    birthday: new Date(),
   });
+  const [docId, setDocId] = useState(""); // Store the document ID
   const [editMode, setEditMode] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { theme } = useTheme();
+
+  useEffect(() => {
+    const fetchUserData = async (userId) => {
+      const userData = await getUser(userId);
+      if (userData) {
+        setDocId(userData.id); // Set the document ID
+        setUser({
+          ...userData,
+          birthday: new Date(userData.birthday), // Convert string to Date object
+        });
+      }
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        fetchUserData(currentUser.uid);
+      }
+    });
+
+    return unsubscribe; // Proper cleanup on unmount
+  }, []);
 
   const handleEditProfilePicture = () => {
     // This will be replaced with actual image picker integration
@@ -31,45 +59,51 @@ const ProfileScreen = ({ navigation }) => {
     setUser({ ...user, birthday: currentDate });
   };
 
-  const toggleEditMode = () => {
+  const toggleEditMode = async () => {
+    if (editMode) {
+      await updateUser(docId, {
+        username: user.username,
+        birthday: user.birthday.toISOString(),
+      });
+    }
     setEditMode(!editMode);
   };
 
   return (
-    <View style={{ backgroundColor: theme.backgroundColor, flex: 1 }}>
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <TouchableOpacity onPress={handleEditProfilePicture}>
         <Image
-          source={{ uri: user.profilePicture }}
-          style={{ width: 100, height: 100 }}
+          source={{ uri: user.profilePicture || defaultImage }}
+          style={styles.profilePicture}
         />
       </TouchableOpacity>
       {editMode ? (
         <View>
-          <Text style={{ color: theme.textColor }}>Username:</Text>
+          <Text style={[styles.label, { color: theme.textColor }]}>Username:</Text>
           <TextInput
-            style={{ color: theme.textColor, borderColor: theme.textColor }}
+            style={[styles.input, { color: theme.textColor, borderColor: theme.textColor }]}
             value={user.username}
             onChangeText={(text) => setUser({ ...user, username: text })}
           />
           <Button
             title="Save"
             onPress={toggleEditMode}
-            color={theme.textColor}
+            color="darkmagenta"
           />
         </View>
       ) : (
         <View>
-          <Text style={{ color: theme.textColor }}>
+          <Text style={[styles.label, { color: theme.textColor }]}>
             Username: {user.username}
           </Text>
           <Button
             title="Edit"
             onPress={toggleEditMode}
-            color={theme.textColor}
+            color="darkmagenta"
           />
         </View>
       )}
-      <Text style={{ color: theme.textColor }}>
+      <Text style={[styles.label, { color: theme.textColor }]}>
         Birthday: {user.birthday.toDateString()}
       </Text>
       {showDatePicker && (
@@ -83,16 +117,41 @@ const ProfileScreen = ({ navigation }) => {
       <Button
         title="Change Birthday"
         onPress={() => setShowDatePicker(true)}
-        color={theme.textColor}
+        color="darkmagenta"
       />
 
       <Button
         title="View Favorites"
         onPress={() => navigation.navigate("FavoritesScreen")}
-        color={theme.textColor}
+        color="darkmagenta"
       />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  profilePicture: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  input: {
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    marginBottom: 16,
+  },
+});
 
 export default ProfileScreen;

@@ -1,5 +1,5 @@
 import { db } from './firebaseSetUp';
-import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, arrayUnion, arrayRemove, limit } from "firebase/firestore";
+import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, arrayUnion, arrayRemove, limit, onSnapshot, where } from "firebase/firestore";
 
 // Helper function to delete documents in a subcollection in batches
 const deleteSubcollectionInBatches = async (userId, subcollectionName, batchSize = 500) => {
@@ -62,22 +62,25 @@ export const createUser = async (userData) => {
 // Read a user profile
 export const getUser = async (userId) => {
   try {
-    const userDoc = await getDoc(doc(db, 'users', userId));
-    if (userDoc.exists()) {
-      return userDoc.data();
+    const q = query(collection(db, 'users'), where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const userDoc = querySnapshot.docs[0];
+      return { id: userDoc.id, ...userDoc.data() };
     } else {
       console.log('No such user!');
       return null;
     }
   } catch (error) {
     console.log('Error getting user: ', error);
+    return null;
   }
 };
 
 // Update a user profile
-export const updateUser = async (userId, updatedFields) => {
+export const updateUser = async (docId, updatedFields) => {
   try {
-    await updateDoc(doc(db, 'users', userId), updatedFields);
+    await updateDoc(doc(db, 'users', docId), updatedFields);
     console.log('User updated successfully');
   } catch (error) {
     console.log('Error updating user: ', error);

@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, FlatList } from 'react-native';
 import { db } from '../firebase/firebaseSetUp';
 import { doc, getDoc } from 'firebase/firestore';
-import PostItem from '../components/PostItem';  // Ensure this path is correct
+import PostItem from '../components/PostItem';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../context/ThemeContext';
 
 const FavoritesScreen = () => {
     const [favorites, setFavorites] = useState([]);
     const navigation = useNavigation();
-    const userId = 'your_user_id_here';  // Dynamically set this based on logged-in user
+    const { theme } = useTheme();
+    const userId = 'your_user_id_here';  // Dynamically set based on logged-in user
 
     useEffect(() => {
         const fetchFavorites = async () => {
@@ -35,11 +37,13 @@ const FavoritesScreen = () => {
     }, []);
 
     return (
-        <View>
+        <View style={{ backgroundColor: theme.backgroundColor, flex: 1 }}>
             <FlatList
                 data={favorites}
                 keyExtractor={item => item.id}
-                renderItem={({ item }) => <PostItem post={item} />}
+                renderItem={({ item }) => (
+                    <PostItem post={item} theme={theme} />
+                )}
             />
         </View>
     );

@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebaseSetUp";
+import { useTheme } from '../context/ThemeContext'; 
 
 export default function Signup({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { theme } = useTheme();
 
   const loginHandler = () => {
     navigation.replace("Login");
@@ -43,8 +45,8 @@ export default function Signup({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Email</Text>
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+      <Text style={{ color: theme.textColor }}>Email</Text>
       <TextInput
         style={styles.input}
         placeholder="Enter your email"
@@ -52,25 +54,29 @@ export default function Signup({ navigation }) {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+        style={{ color: theme.textColor }}
       />
-      <Text style={styles.label}>Password</Text>
+      <Text style={{ color: theme.textColor }}>Password</Text>
       <TextInput
-        style={styles.input}
-        placeholder="Enter your password"
+        placeholder="Password"
         secureTextEntry={true}
         value={password}
         onChangeText={setPassword}
+        autoCompleteType="off"
+        textContentType="newPassword"
+        style={{ color: theme.textColor }}
       />
-      <Text style={styles.label}>Confirm Password</Text>
+      <Text style={{ color: theme.textColor }}>Confirm Password</Text>
       <TextInput
-        style={styles.input}
-        placeholder="Confirm your password"
+        placeholder="Confirm Password"
         secureTextEntry={true}
         value={confirmPassword}
         onChangeText={setConfirmPassword}
+        autoCompleteType="off"
+        textContentType="newPassword"
+        style={{ color: theme.textColor }}
       />
       <Button title="Register" onPress={signupHandler} color="darkmagenta" />
-      <View style={styles.space} />
       <Button title="Already Registered? Login" onPress={loginHandler} color="darkmagenta" />
     </View>
   );
@@ -79,24 +85,6 @@ export default function Signup({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f0f0f0',
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginVertical: 8,
-  },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    backgroundColor: '#fff',
-    marginBottom: 16,
-  },
-  space: {
-    height: 20,
+    padding: 20
   },
 });

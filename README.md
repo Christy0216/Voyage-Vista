@@ -3,20 +3,18 @@
 ## Project Overview
 
 Voyage Vista is a React Native app designed to enhance the travel experience by allowing users to explore destinations, capture and share memorable moments, and manage travel itineraries efficiently.
-
+```diff
+- Note: Fields marked with an asterisk (\*) will be implemented in the next iteration.
+```
 ## App Functionality
 
-- **Map Integration:** Interactive maps with location markers for user-visited and suggested travel spots.
-- **Camera Functionality:** Users can take pictures at destinations and upload them to the app.
+- **Map Integration:** \* Interactive maps with location markers for user-visited and suggested travel spots.
+- **Camera Functionality:** \* Users can take pictures at destinations and upload them to the app.
 - **CRUD Operations:** Users can create, read, update, and delete information related to their travel experiences.
 
 ## Data Model and Firestore Collections
 
 ### Collections:
-
-### Collections:
-
-Note: Fields marked with an asterisk (\*) will be implemented in the next iteration.
 
 - **Users:** Stores user profile information and their interactions with posts.
 
@@ -89,7 +87,8 @@ Note: Fields marked with an asterisk (\*) will be implemented in the next iterat
 
 ## Screenshots
 
-![Main Screen](./path/to/screenshot.png)  
+<img src="./Voyage-Vista//res/main_screen_screenshot.PNG" alt="Main Screen" width="400" />
+
 _Caption: Main screen showing the list of users' posts._
 
 ## Version Control and Collaboration
@@ -102,4 +101,4 @@ If there are any contributions not directly reflected in GitHub commits (e.g., p
 
 ## Next Steps
 
-For the next iteration, we aim to enhance the CRUD operations for the Photos collection and improve the user interface based on initial user feedback from our testing sessions.
+For the next iteration, we aim to enhance the CRUD operations for the Photos collection and comments collection as well as integrate the map into the app to improve the user interface based on initial user feedback from our testing sessions.

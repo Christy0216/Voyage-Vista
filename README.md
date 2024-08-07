@@ -4,7 +4,7 @@
 
 Voyage Vista is a React Native app designed to enhance the travel experience by allowing users to explore destinations, capture and share memorable moments, and manage travel itineraries efficiently.
 ```diff
-- Note: Fields marked with an asterisk (\*) will be implemented in the next iteration.
+- Note: Fields marked with an asterisk (*) will be implemented in the next iteration.
 ```
 ## App Functionality
 

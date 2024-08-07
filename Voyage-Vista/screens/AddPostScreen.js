@@ -9,32 +9,32 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useTheme } from '../context/ThemeContext';  // Make sure the path is correct
 
 const AddPostScreen = ({ navigation }) => {
   const [story, setStory] = useState('');
   const [addressType, setAddressType] = useState('city');
+  const { theme } = useTheme();  // Use the theme from context
 
   const handleSubmit = () => {
-    // Handle the submit action
     console.log('Post submitted:', { story, addressType });
-    // Navigation or other actions
   };
+
+  const themedStyles = styles(theme);  // Generate styles using the current theme
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        {/* Submit Button */}
-        <View style={styles.submitButtonContainer}>
+      <View style={themedStyles.container}>
+        <View style={themedStyles.submitButtonContainer}>
           <TouchableOpacity onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Submit</Text>
+            <Text style={themedStyles.submitButtonText}>Submit</Text>
           </TouchableOpacity>
         </View>
 
-        {/* My Story TextInput */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>My Story</Text>
+        <View style={themedStyles.inputContainer}>
+          <Text style={themedStyles.label}>My Story</Text>
           <TextInput
-            style={styles.textInput}
+            style={themedStyles.textInput}
             multiline
             numberOfLines={4}
             value={story}
@@ -42,26 +42,23 @@ const AddPostScreen = ({ navigation }) => {
           />
         </View>
 
-        {/* Photo Area */}
-        <View style={styles.photoArea}>
-          <Text style={styles.label}>Photo Area</Text>
-          {/* Empty view for photo area */}
-          <View style={styles.photoPlaceholder}></View>
+        <View style={themedStyles.photoArea}>
+          <Text style={themedStyles.label}>Photo Area</Text>
+          <View style={themedStyles.photoPlaceholder}></View>
         </View>
 
-        {/* Address Dropdown */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Address</Text>
+        <View style={themedStyles.inputContainer}>
+          <Text style={themedStyles.label}>Address</Text>
           <Picker
             selectedValue={addressType}
             onValueChange={(itemValue) => setAddressType(itemValue)}
-            style={styles.picker}
+            style={themedStyles.picker}
           >
             <Picker.Item label="City" value="city" />
             <Picker.Item label="County" value="county" />
             <Picker.Item label="Street Address" value="streetAddress" />
           </Picker>
-          <Text style={styles.fakeAddress}>
+          <Text style={themedStyles.fakeAddress}>
             {addressType === 'city' && '123 Fake City, Country'}
             {addressType === 'county' && '456 Fake County, Country'}
             {addressType === 'streetAddress' && '789 Fake Street, Fake City, Country'}
@@ -72,18 +69,19 @@ const AddPostScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+// Move styles to a function that takes theme as parameter
+const styles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: theme.backgroundColor,  // Use theme for background color
   },
   submitButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
   submitButtonText: {
-    color: '#007bff',
+    color: theme.textColor,  // Use theme for text color
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -94,6 +92,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: theme.textColor,  // Use theme for text color
   },
   textInput: {
     height: 100,
@@ -123,7 +122,7 @@ const styles = StyleSheet.create({
   fakeAddress: {
     marginTop: 8,
     fontSize: 14,
-    color: '#555',
+    color: theme.textColor,  // Use theme for text color
   },
 });
 

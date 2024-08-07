@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
+import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebaseSetUp";
+import { useTheme } from '../context/ThemeContext'; 
 
 export default function Signup({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { theme } = useTheme();
 
   const loginHandler = () => {
     navigation.replace("Login");
@@ -53,16 +55,17 @@ export default function Signup({ navigation }) {
   };
 
   return (
-    <View>
-      <Text>Email</Text>
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+      <Text style={{ color: theme.textColor }}>Email</Text>
       <TextInput
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+        style={{ color: theme.textColor }}
       />
-      <Text>Password</Text>
+      <Text style={{ color: theme.textColor }}>Password</Text>
       <TextInput
         placeholder="Password"
         secureTextEntry={true}
@@ -70,8 +73,9 @@ export default function Signup({ navigation }) {
         onChangeText={setPassword}
         autoCompleteType="off"
         textContentType="newPassword"
+        style={{ color: theme.textColor }}
       />
-      <Text>Confirm Password</Text>
+      <Text style={{ color: theme.textColor }}>Confirm Password</Text>
       <TextInput
         placeholder="Confirm Password"
         secureTextEntry={true}
@@ -79,9 +83,17 @@ export default function Signup({ navigation }) {
         onChangeText={setConfirmPassword}
         autoCompleteType="off"
         textContentType="newPassword"
+        style={{ color: theme.textColor }}
       />
-      <Button title="Register" onPress={signupHandler} />
-      <Button title="Already Registered? Login" onPress={loginHandler} />
+      <Button title="Register" onPress={signupHandler} color="darkmagenta" />
+      <Button title="Already Registered? Login" onPress={loginHandler} color="darkmagenta" />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20
+  },
+});

@@ -70,7 +70,7 @@ export default function App() {
         <Stack.Screen
           name="PostDetailsScreen"
           component={PostDetailsScreen}
-          options={{ headerShown: true }} // You can set this to false if you don't want a header for this screen
+          options={{ headerShown: true }}
         />
         <Stack.Screen
           name="FavoritesScreen"

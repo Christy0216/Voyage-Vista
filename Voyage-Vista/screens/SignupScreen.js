@@ -28,26 +28,16 @@ export default function Signup({ navigation }) {
       return;
     }
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log("User created:", userCredential.user);
-      navigation.navigate("Home");
+      // navigation.navigate("Home");
     } catch (error) {
       if (error.code === "auth/email-already-in-use") {
-        Alert.alert(
-          "Email already in use",
-          "Please use a different email address."
-        );
+        Alert.alert("Email already in use", "Please use a different email address.");
       } else if (error.code === "auth/invalid-email") {
         Alert.alert("Invalid Email", "Please enter a valid email address.");
       } else if (error.code === "auth/weak-password") {
-        Alert.alert(
-          "Weak Password",
-          "Password should be at least 6 characters long."
-        );
+        Alert.alert("Weak Password", "Password should be at least 6 characters long.");
       } else {
         Alert.alert("Signup Error", error.message);
       }
@@ -58,7 +48,8 @@ export default function Signup({ navigation }) {
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <Text style={{ color: theme.textColor }}>Email</Text>
       <TextInput
-        placeholder="Email"
+        style={styles.input}
+        placeholder="Enter your email"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"

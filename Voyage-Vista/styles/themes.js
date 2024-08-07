@@ -4,7 +4,7 @@ export const themes = {
       textColor: 'black',
     },
     dark: {
-      backgroundColor: 'black',
+      backgroundColor: 'grey',
       textColor: 'white',
     }
   };

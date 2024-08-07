@@ -60,30 +60,27 @@ export const createUser = async (userData) => {
 };
 
 // Read a user profile
-export const getUser =  (userId) => {
+export const getUser = async (userId) => {
   try {
-    const userDoc = onSnapshot(query(collection(db, 'users'), where('userId', '==', userId)),
-      (snapshot) => {
-        if (snapshot.empty) {
-          console.log('No matching documents.');
-          return;
-        }
-
-        snapshot.forEach(doc => {
-          console.log(doc.id, '=>', doc.data());
-          return doc.data();
-        });
-      });}
-  catch (error) {
+    const q = query(collection(db, 'users'), where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const userDoc = querySnapshot.docs[0];
+      return { id: userDoc.id, ...userDoc.data() };
+    } else {
+      console.log('No such user!');
+      return null;
+    }
+  } catch (error) {
     console.log('Error getting user: ', error);
+    return null;
   }
-
 };
 
 // Update a user profile
-export const updateUser = async (userId, updatedFields) => {
+export const updateUser = async (docId, updatedFields) => {
   try {
-    await updateDoc(doc(db, 'users', userId), updatedFields);
+    await updateDoc(doc(db, 'users', docId), updatedFields);
     console.log('User updated successfully');
   } catch (error) {
     console.log('Error updating user: ', error);

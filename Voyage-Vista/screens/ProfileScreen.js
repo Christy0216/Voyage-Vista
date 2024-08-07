@@ -10,33 +10,33 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "../context/ThemeContext";
-import { auth, db } from "../firebase/firebaseSetUp";
+import { auth } from "../firebase/firebaseSetUp";
 import { getUser, updateUser } from "../firebase/firebaseUserHelper";
 import { onAuthStateChanged } from "firebase/auth";
+
+const defaultImage = "https://via.placeholder.com/100";
 
 const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState({
     userId: "",
     username: "",
     birthday: new Date(),
-    profilePicture: "https://via.placeholder.com/100",
   });
+  const [docId, setDocId] = useState(""); // Store the document ID
   const [editMode, setEditMode] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { theme } = useTheme();
-  const [id, setId] = useState("");
 
   useEffect(() => {
     const fetchUserData = async (userId) => {
-      const userData = getUser(userId);
+      const userData = await getUser(userId);
       if (userData) {
-        setId(userData.id);
+        setDocId(userData.id); // Set the document ID
         setUser({
           ...userData,
           birthday: new Date(userData.birthday), // Convert string to Date object
         });
       }
-      
     };
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -61,7 +61,7 @@ const ProfileScreen = ({ navigation }) => {
 
   const toggleEditMode = async () => {
     if (editMode) {
-      await updateUser(user.id, {
+      await updateUser(docId, {
         username: user.username,
         birthday: user.birthday.toISOString(),
       });
@@ -73,7 +73,7 @@ const ProfileScreen = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <TouchableOpacity onPress={handleEditProfilePicture}>
         <Image
-          source={{ uri: user.profilePicture }}
+          source={{ uri: user.profilePicture || defaultImage }}
           style={styles.profilePicture}
         />
       </TouchableOpacity>

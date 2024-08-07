@@ -1,4 +1,4 @@
-import { db } from './firebaseSetUp';
+import { db, auth } from './firebaseSetUp';
 import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, increment, arrayUnion, arrayRemove, limit } from "firebase/firestore";
 import { addUserPost, removeUserPost } from './firebaseUserHelper';
 
@@ -25,7 +25,26 @@ const deleteSubcollectionInBatches = async (postId, subcollectionName, batchSize
 // Create a new post
 export const createPost = async (userId, post) => {
   try {
-    const postRef = await addDoc(collection(db, 'posts'), post);
+    // Fetch user details from Firestore
+    const userDocRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      throw new Error('User not found');
+    }
+
+    const userData = userDoc.data();
+
+    const postRef = await addDoc(collection(db, 'posts'), {
+      ...post,
+      userId: userId,
+      userName: userData.username,
+      userProfilePicture: userData.profilePicture,
+      favoritesCount: 0,
+      likesCount: 0,
+      createdAt: new Date()
+    });
+
     await addUserPost(userId, postRef.id);
     console.log('Post created successfully with ID:', postRef.id);
     return postRef.id;
@@ -42,7 +61,12 @@ export const getPostWithUserDetails = async (postId) => {
   
       if (postDoc.exists()) {
         const postData = postDoc.data();
-        const userDocRef = doc(db, 'users', postData.userId);  // Assuming the post data includes userId
+        if (!postData.uid) {
+          console.log('User ID not found in post data.');
+          return null;
+        }
+  
+        const userDocRef = doc(db, 'users', postData.uid); // Assuming the post data includes uid
         const userDoc = await getDoc(userDocRef);
   
         if (userDoc.exists()) {
@@ -51,8 +75,9 @@ export const getPostWithUserDetails = async (postId) => {
             post: {
               id: postDoc.id,
               ...postData,
-              userName: userData.name,  // Assuming the user's name is stored under 'name'
-              userProfilePicture: userData.profilePicture  // Assuming the user's profile picture URL is stored under 'profilePicture'
+              userName: userData.username || 'Unknown', // Assuming the user's name is stored under 'name'
+              userProfilePicture: userData.profilePicture || '', // Assuming the user's profile picture URL is stored under 'profilePicture'
+              photos: postData.photos || [] // Default value if photos are missing
             }
           };
         } else {
@@ -68,7 +93,7 @@ export const getPostWithUserDetails = async (postId) => {
       return null;
     }
   };
-  
+
 // Update a post
 export const updatePost = async (postId, updatedFields) => {
   try {

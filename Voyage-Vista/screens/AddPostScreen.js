@@ -10,14 +10,35 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useTheme } from '../context/ThemeContext';
+import { auth, db } from '../firebase/firebaseSetUp';
+import { addDoc, collection } from 'firebase/firestore';
 
 const AddPostScreen = ({ navigation }) => {
   const [story, setStory] = useState('');
   const [addressType, setAddressType] = useState('city');
   const { theme } = useTheme();
 
-  const handleSubmit = () => {
-    console.log('Post submitted:', { story, addressType });
+  const handleSubmit = async () => {
+    if (!auth.currentUser) {
+      console.log('No user logged in');
+      return;
+    }
+
+    const post = {
+      uid: auth.currentUser.uid,
+      story,
+      addressType,
+      photos: [],
+      createdAt: new Date()
+    };
+
+    try {
+      const docRef = await addDoc(collection(db, 'posts'), post);
+      console.log('Post created with ID:', docRef.id);
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error adding post:', error);
+    }
   };
 
   const themedStyles = styles(theme);  // Apply the theme-based styles dynamically

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { getPostWithUserDetails } from '../firebase/firebasePostHelper';  // Update the import path as needed
 import { useTheme } from '../context/ThemeContext'; // Import the theme context
+import { defaultPicture } from '../reusables/objects'; // Import the default picture
 
 const PostDetailsScreen = ({ route }) => {
   const { postId } = route.params;
@@ -49,11 +50,12 @@ const PostDetailsScreen = ({ route }) => {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+      {console.log(postDetails)}
       <View style={styles.userContainer}>
-        {postDetails.userProfilePicture && (
-          <Image source={{ uri: postDetails.userProfilePicture }} style={styles.userImage} />
-        )}
         <Text style={[styles.userName, { color: theme.textColor }]}>{postDetails.userName}</Text>
+        
+          <Image source={{ uri: postDetails.userProfilePicture || defaultPicture}} style={styles.userImage} />
+        
       </View>
       {postDetails.story && <Text style={[styles.story, { color: theme.textColor }]}>{postDetails.story}</Text>}
       <Text style={[styles.text, { color: theme.textColor }]}>Address Type: {postDetails.addressType}</Text>
@@ -85,30 +87,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  userContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   userImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    marginBottom: 10
+    marginTop: 10,
   },
   userName: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10
+    marginBottom: 10,
   },
   story: {
     fontSize: 16,
-    marginBottom: 10
+    marginBottom: 10,
   },
   text: {
     fontSize: 16,
-    marginVertical: 8
+    marginVertical: 8,
   },
   postImage: {
     width: '100%',
     height: 200,
     resizeMode: 'cover',
-    marginVertical: 10
+    marginVertical: 10,
   },
   buttonsContainer: {
     flexDirection: 'row',

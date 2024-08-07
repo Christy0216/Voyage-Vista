@@ -13,6 +13,7 @@ const PostDetailsScreen = ({ route }) => {
   const [favorited, setFavorited] = useState(false);
 
   useEffect(() => {
+    console.log(postId);
     const fetchDetails = async () => {
       const details = await getPostWithUserDetails(postId);
       if (details) {

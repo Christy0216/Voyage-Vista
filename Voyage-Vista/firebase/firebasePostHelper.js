@@ -38,10 +38,10 @@ export const createPost = async (userId, post) => {
     const postRef = await addDoc(collection(db, 'posts'), {
       ...post,
       userId: userId,
-      userName: userData.username,
-      userProfilePicture: userData.profilePicture,
       favoritesCount: 0,
       likesCount: 0,
+      favoritedBy: [],
+      likedBy: [],
       createdAt: new Date()
     });
 

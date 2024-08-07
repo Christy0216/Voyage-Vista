@@ -15,21 +15,21 @@ import { addDoc, collection } from 'firebase/firestore';
 
 const AddPostScreen = ({ navigation }) => {
   const [story, setStory] = useState('');
+  const [destination, setDestination] = useState('');
   const [addressType, setAddressType] = useState('city');
+  const [address, setAddress] = useState('');
+  const [coordinates, setCoordinates] = useState({ lat: 0, lon: 0 });
   const { theme } = useTheme();
 
   const handleSubmit = async () => {
-    if (!auth.currentUser) {
-      console.log('No user logged in');
-      return;
-    }
 
     const post = {
       uid: auth.currentUser.uid,
       story,
+      destination,
       addressType,
-      photos: [],
-      createdAt: new Date()
+      address,
+      coordinates,
     };
 
     try {
@@ -53,6 +53,15 @@ const AddPostScreen = ({ navigation }) => {
         </View>
 
         <View style={themedStyles.inputContainer}>
+          <Text style={themedStyles.label}>Destination</Text>
+          <TextInput
+            style={themedStyles.textInput}
+            value={destination}
+            onChangeText={setDestination}
+          />
+        </View>
+
+        <View style={themedStyles.inputContainer}>
           <Text style={themedStyles.label}>My Story</Text>
           <TextInput
             style={themedStyles.textInput}
@@ -63,13 +72,18 @@ const AddPostScreen = ({ navigation }) => {
           />
         </View>
 
-        <View style={themedStyles.photoArea}>
-          <Text style={themedStyles.label}>Photo Area</Text>
-          <View style={themedStyles.photoPlaceholder}></View>
+        <View style={themedStyles.inputContainer}>
+          <Text style={themedStyles.label}>Address</Text>
+          <TextInput
+            style={themedStyles.textInput}
+            value={address}
+            onChangeText={setAddress}
+            placeholder="Enter address"
+          />
         </View>
 
         <View style={themedStyles.inputContainer}>
-          <Text style={themedStyles.label}>Address</Text>
+          <Text style={themedStyles.label}>Address Type</Text>
           <Picker
             selectedValue={addressType}
             onValueChange={(itemValue) => setAddressType(itemValue)}
@@ -82,11 +96,24 @@ const AddPostScreen = ({ navigation }) => {
             <Picker.Item label="County" value="county" />
             <Picker.Item label="Street Address" value="streetAddress" />
           </Picker>
-          <Text style={themedStyles.fakeAddress}>
-            {addressType === 'city' && '123 Fake City, Country'}
-            {addressType === 'county' && '456 Fake County, Country'}
-            {addressType === 'streetAddress' && '789 Fake Street, Fake City, Country'}
-          </Text>
+        </View>
+
+        <View style={themedStyles.inputContainer}>
+          <Text style={themedStyles.label}>Coordinates</Text>
+          <TextInput
+            style={themedStyles.textInput}
+            value={String(coordinates.lat)}
+            onChangeText={(lat) => setCoordinates({ ...coordinates, lat: parseFloat(lat) })}
+            placeholder="Latitude"
+            keyboardType="numeric"
+          />
+          <TextInput
+            style={themedStyles.textInput}
+            value={String(coordinates.lon)}
+            onChangeText={(lon) => setCoordinates({ ...coordinates, lon: parseFloat(lon) })}
+            placeholder="Longitude"
+            keyboardType="numeric"
+          />
         </View>
       </View>
     </TouchableWithoutFeedback>
@@ -118,34 +145,17 @@ const styles = (theme) => StyleSheet.create({
     color: theme.textColor,
   },
   textInput: {
-    height: 100,
+    height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 4,
     padding: 8,
     backgroundColor: '#fff',
   },
-  photoArea: {
-    marginVertical: 16,
-  },
-  photoPlaceholder: {
-    height: 200,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 4,
-    backgroundColor: '#e0e0e0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   picker: {
     height: 50,
     width: '100%',
     backgroundColor: theme.backgroundColor,
-  },
-  fakeAddress: {
-    marginTop: 8,
-    fontSize: 14,
-    color: theme.textColor,
   },
 });
 

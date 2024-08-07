@@ -13,6 +13,7 @@ import SettingScreen from "./screens/SettingScreen";
 import PostDetailsScreen from "./screens/PostDetailsScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
 import { ThemeProvider } from './context/ThemeContext';
+import WeatherDetailsScreen from "./screens/WeatherDetailsScreen";
 // import { auth } from "./firebase";
 // import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
@@ -73,6 +74,11 @@ export default function App() {
         <Stack.Screen
           name="FavoritesScreen"
           component={FavoritesScreen}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="WeatherDetailsScreen"
+          component={WeatherDetailsScreen}
           options={{ headerShown: true }}
         />
         {/* ) : (

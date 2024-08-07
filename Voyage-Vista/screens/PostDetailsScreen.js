@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { getPostWithUserDetails } from '../firebase/firebasePostHelper';  // Update the import path as needed
 import { useTheme } from '../context/ThemeContext'; // Import the theme context
 
@@ -8,6 +8,8 @@ const PostDetailsScreen = ({ route }) => {
   const [postDetails, setPostDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme(); // Use the theme from the context
+  const [liked, setLiked] = useState(false);
+  const [favorited, setFavorited] = useState(false);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -19,6 +21,14 @@ const PostDetailsScreen = ({ route }) => {
     };
     fetchDetails();
   }, [postId]);
+
+  const toggleLike = () => {
+    setLiked(!liked);
+  };
+
+  const toggleFavorite = () => {
+    setFavorited(!favorited);
+  };
 
   if (loading) {
     return (
@@ -51,6 +61,14 @@ const PostDetailsScreen = ({ route }) => {
       {postDetails.photos && postDetails.photos.length > 0 && postDetails.photos.map((photo, index) => (
         <Image key={index} source={{ uri: photo.url }} style={styles.postImage} />
       ))}
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity onPress={toggleLike} style={[styles.button, liked && styles.buttonActive]}>
+          <Text style={[styles.buttonText, liked && styles.buttonTextActive]}>Like</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={toggleFavorite} style={[styles.button, favorited && styles.buttonActive]}>
+          <Text style={[styles.buttonText, favorited && styles.buttonTextActive]}>Favorite</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -89,7 +107,28 @@ const styles = StyleSheet.create({
     height: 200,
     resizeMode: 'cover',
     marginVertical: 10
-  }
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+  },
+  button: {
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  buttonActive: {
+    backgroundColor: 'darkmagenta',
+  },
+  buttonText: {
+    fontSize: 16,
+  },
+  buttonTextActive: {
+    color: '#fff',
+  },
 });
 
 export default PostDetailsScreen;
+

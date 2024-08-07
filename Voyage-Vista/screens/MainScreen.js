@@ -1,12 +1,13 @@
-// MainScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, FlatList } from 'react-native';
+import { View, FlatList, StyleSheet } from 'react-native';
 import { db } from '../firebase/firebaseSetUp';
 import { collection, getDocs } from 'firebase/firestore';
-import PostItem from '../components/PostItem';  // Import the reusable component
+import PostItem from '../components/PostItem';
+import { useTheme } from '../context/ThemeContext';
 
 const MainScreen = () => {
     const [posts, setPosts] = useState([]);
+    const { theme } = useTheme();
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -23,7 +24,7 @@ const MainScreen = () => {
     }, []);
 
     return (
-        <View>
+        <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
             <FlatList
                 data={posts}
                 keyExtractor={(item) => item.id}
@@ -32,5 +33,11 @@ const MainScreen = () => {
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    }
+});
 
 export default MainScreen;

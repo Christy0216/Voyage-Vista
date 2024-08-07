@@ -1,6 +1,6 @@
-import { db } from 'firebaseSetup';
+import { db } from './firebaseSetUp';
 import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, increment, arrayUnion, arrayRemove, limit } from "firebase/firestore";
-import { addUserPost, removeUserPost } from './usersHelper';
+import { addUserPost, removeUserPost } from './firebaseUserHelper';
 
 // Helper function to delete documents in a subcollection in batches
 const deleteSubcollectionInBatches = async (postId, subcollectionName, batchSize = 500) => {
@@ -34,21 +34,41 @@ export const createPost = async (userId, post) => {
   }
 };
 
-// Read a post
-export const getPost = async (postId) => {
-  try {
-    const postDoc = await getDoc(doc(db, 'posts', postId));
-    if (postDoc.exists()) {
-      return postDoc.data();
-    } else {
-      console.log('No such post!');
+// Fetch a post along with the user details
+export const getPostWithUserDetails = async (postId) => {
+    try {
+      const postDocRef = doc(db, 'posts', postId);
+      const postDoc = await getDoc(postDocRef);
+  
+      if (postDoc.exists()) {
+        const postData = postDoc.data();
+        const userDocRef = doc(db, 'users', postData.userId);  // Assuming the post data includes userId
+        const userDoc = await getDoc(userDocRef);
+  
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          return {
+            post: {
+              id: postDoc.id,
+              ...postData,
+              userName: userData.name,  // Assuming the user's name is stored under 'name'
+              userProfilePicture: userData.profilePicture  // Assuming the user's profile picture URL is stored under 'profilePicture'
+            }
+          };
+        } else {
+          console.log('User not found for the post.');
+          return null;
+        }
+      } else {
+        console.log('No such post found!');
+        return null;
+      }
+    } catch (error) {
+      console.log('Error getting post with user details: ', error);
       return null;
     }
-  } catch (error) {
-    console.log('Error getting post: ', error);
-  }
-};
-
+  };
+  
 // Update a post
 export const updatePost = async (postId, updatedFields) => {
   try {

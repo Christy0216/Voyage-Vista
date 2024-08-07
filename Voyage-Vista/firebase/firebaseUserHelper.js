@@ -1,5 +1,5 @@
 import { db } from './firebaseSetUp';
-import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, arrayUnion, arrayRemove, limit } from "firebase/firestore";
+import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, arrayUnion, arrayRemove, limit, onSnapshot, where } from "firebase/firestore";
 
 // Helper function to delete documents in a subcollection in batches
 const deleteSubcollectionInBatches = async (userId, subcollectionName, batchSize = 500) => {
@@ -60,18 +60,24 @@ export const createUser = async (userData) => {
 };
 
 // Read a user profile
-export const getUser = async (userId) => {
+export const getUser =  (userId) => {
   try {
-    const userDoc = await getDoc(doc(db, 'users', userId));
-    if (userDoc.exists()) {
-      return userDoc.data();
-    } else {
-      console.log('No such user!');
-      return null;
-    }
-  } catch (error) {
+    const userDoc = onSnapshot(query(collection(db, 'users'), where('userId', '==', userId)),
+      (snapshot) => {
+        if (snapshot.empty) {
+          console.log('No matching documents.');
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          console.log(doc.id, '=>', doc.data());
+          return doc.data();
+        });
+      });}
+  catch (error) {
     console.log('Error getting user: ', error);
   }
+
 };
 
 // Update a user profile

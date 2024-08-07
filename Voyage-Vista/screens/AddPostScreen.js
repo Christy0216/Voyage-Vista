@@ -9,18 +9,18 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { useTheme } from '../context/ThemeContext';  // Make sure the path is correct
+import { useTheme } from '../context/ThemeContext';
 
 const AddPostScreen = ({ navigation }) => {
   const [story, setStory] = useState('');
   const [addressType, setAddressType] = useState('city');
-  const { theme } = useTheme();  // Use the theme from context
+  const { theme } = useTheme();
 
   const handleSubmit = () => {
     console.log('Post submitted:', { story, addressType });
   };
 
-  const themedStyles = styles(theme);  // Generate styles using the current theme
+  const themedStyles = styles(theme);  // Apply the theme-based styles dynamically
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -53,6 +53,9 @@ const AddPostScreen = ({ navigation }) => {
             selectedValue={addressType}
             onValueChange={(itemValue) => setAddressType(itemValue)}
             style={themedStyles.picker}
+            itemStyle={{
+              color: theme.textColor
+            }}
           >
             <Picker.Item label="City" value="city" />
             <Picker.Item label="County" value="county" />
@@ -69,19 +72,18 @@ const AddPostScreen = ({ navigation }) => {
   );
 };
 
-// Move styles to a function that takes theme as parameter
 const styles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: theme.backgroundColor,  // Use theme for background color
+    backgroundColor: theme.backgroundColor,
   },
   submitButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
   submitButtonText: {
-    color: theme.textColor,  // Use theme for text color
+    color: theme.textColor,
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -92,7 +94,7 @@ const styles = (theme) => StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: theme.textColor,  // Use theme for text color
+    color: theme.textColor,
   },
   textInput: {
     height: 100,
@@ -117,12 +119,12 @@ const styles = (theme) => StyleSheet.create({
   picker: {
     height: 50,
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: theme.backgroundColor,
   },
   fakeAddress: {
     marginTop: 8,
     fontSize: 14,
-    color: theme.textColor,  // Use theme for text color
+    color: theme.textColor,
   },
 });
 

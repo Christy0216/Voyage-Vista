@@ -14,8 +14,8 @@ import PostDetailsScreen from "./screens/PostDetailsScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
 import { ThemeProvider } from './context/ThemeContext';
 import WeatherDetailsScreen from "./screens/WeatherDetailsScreen";
-// import { auth } from "./firebase";
-// import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase/firebaseSetUp";
+import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 
 const Stack = createNativeStackNavigator();
@@ -43,13 +43,13 @@ function AppTabs() {
 }
 
 export default function App() {
-  // const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     setIsUserAuthenticated(!!user);
-  //   });
-  //   return unsubscribe; // Proper cleanup on unmount
-  // }, []);
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsUserAuthenticated(!!user);
+    });
+    return unsubscribe; // Proper cleanup on unmount
+  }, []);
 
   return (
     <ThemeProvider>
@@ -60,7 +60,8 @@ export default function App() {
           headerTintColor: "black",
         }}
       >
-        {/* {isUserAuthenticated ? ( */}
+        {isUserAuthenticated ? (
+          <>
         <Stack.Screen
           name="HomeTabs"
           component={AppTabs}
@@ -81,13 +82,14 @@ export default function App() {
           component={WeatherDetailsScreen}
           options={{ headerShown: true }}
         />
-        {/* ) : (
+        </>
+         ) : (
           <Stack.Screen
             name="Auth"
             component={AuthStack}
             options={{ headerShown: false }}
           />
-        )} */}
+        )} 
       </Stack.Navigator>
     </NavigationContainer>
     </ThemeProvider>

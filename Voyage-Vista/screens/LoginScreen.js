@@ -18,13 +18,9 @@ export default function Login({ navigation }) {
     }
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log("User logged in:", userCredential.user);
-      navigation.replace("Home");
+      // navigation.replace("Home");
     } catch (error) {
       if (error.code === "auth/user-not-found") {
         Alert.alert("Login Error", "No user found with this email.");
@@ -57,7 +53,32 @@ export default function Login({ navigation }) {
       />
       <Button title="Login" onPress={loginHandler} color="darkmagenta" />
       <View style={styles.space} />
-      <Button title="Signup" onPress={signupHandler} color="#darkmagenta" />
+      <Button title="Signup" onPress={signupHandler} color="darkmagenta" />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f0f0f0',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginVertical: 8,
+  },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    backgroundColor: '#fff',
+    marginBottom: 16,
+  },
+  space: {
+    height: 20,
+  },
+});

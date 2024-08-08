@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useTheme } from '../context/ThemeContext'; // Import the theme context
 import { defaultPicture } from '../reusables/objects'; // Import the default picture
 import { deletePost, updatePost, getPostWithUserDetails, incrementLikesCount, decrementLikesCount, incrementFavoritesCount, decrementFavoritesCount, addPostComment, removePostComment } from '../firebase/firebasePostHelper';

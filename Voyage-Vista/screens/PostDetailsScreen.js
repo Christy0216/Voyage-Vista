@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { getPostWithUserDetails } from '../firebase/firebasePostHelper';  // Update the import path as needed
+import { updatePost, getPostWithUserDetails, incrementLikesCount, decrementLikesCount, incrementFavoritesCount, decrementFavoritesCount } from '../firebase/firebasePostHelper';  // Update the import path as needed
 import { useTheme } from '../context/ThemeContext'; // Import the theme context
 import { defaultPicture } from '../reusables/objects'; // Import the default picture
+import { getUser, addUserFavorite, addUserLike, removeUserFavorite, removeUserLike } from '../firebase/firebaseUserHelper';
+import { auth, db } from '../firebase/firebaseSetUp'; // Import Firebase auth and db
+import { updateDoc, arrayUnion, arrayRemove, doc } from 'firebase/firestore';
 
 const PostDetailsScreen = ({ route }) => {
   const { postId } = route.params;
@@ -11,25 +14,62 @@ const PostDetailsScreen = ({ route }) => {
   const { theme } = useTheme(); // Use the theme from the context
   const [liked, setLiked] = useState(false);
   const [favorited, setFavorited] = useState(false);
+  const [userDoc, setUserDoc] = useState(null);
 
   useEffect(() => {
-    console.log(postId);
     const fetchDetails = async () => {
       const details = await getPostWithUserDetails(postId);
       if (details) {
         setPostDetails(details.post);
+        const uid = auth.currentUser.uid;
+        const user = await getUser(uid);
+        setUserDoc(user);
+        setLiked(details.post.likedBy.includes(uid));
+        setFavorited(details.post.favoritedBy.includes(uid));
       }
       setLoading(false);
     };
     fetchDetails();
   }, [postId]);
 
-  const toggleLike = () => {
-    setLiked(!liked);
+  const toggleLike = async () => {
+    const newLikedState = !liked;
+    setLiked(newLikedState);
+    setPostDetails(prevDetails => ({
+      ...prevDetails,
+      likesCount: newLikedState ? prevDetails.likesCount + 1 : prevDetails.likesCount - 1,
+      likedBy: newLikedState ? [...prevDetails.likedBy, auth.currentUser.uid] : prevDetails.likedBy.filter(uid => uid !== auth.currentUser.uid)
+    }));
+
+    if (newLikedState) {
+      await addUserLike(userDoc.id, postId);
+      await incrementLikesCount(postId);
+      await updateDoc(doc(db, 'posts', postId), { likedBy: arrayUnion(auth.currentUser.uid) });
+    } else {
+      await removeUserLike(userDoc.id, postId);
+      await decrementLikesCount(postId);
+      await updateDoc(doc(db, 'posts', postId), { likedBy: arrayRemove(auth.currentUser.uid) });
+    }
   };
 
-  const toggleFavorite = () => {
-    setFavorited(!favorited);
+  const toggleFavorite = async () => {
+    const newFavoritedState = !favorited;
+    setFavorited(newFavoritedState);
+    setPostDetails(prevDetails => ({
+      ...prevDetails,
+      favoritesCount: newFavoritedState ? prevDetails.favoritesCount + 1 : prevDetails.favoritesCount - 1,
+      favoritedBy: newFavoritedState ? [...prevDetails.favoritedBy, auth.currentUser.uid] : prevDetails.favoritedBy.filter(uid => uid !== auth.currentUser.uid)
+    }));
+
+    if (newFavoritedState) {
+      await addUserFavorite(userDoc.id, postId);
+      await incrementFavoritesCount(postId);
+      await updateDoc(doc(db, 'posts', postId), { favoritedBy: arrayUnion(auth.currentUser.uid) });
+    } else {
+      await removeUserFavorite(userDoc.id, postId);
+      await decrementFavoritesCount(postId);
+      await updateDoc(doc(db, 'posts', postId), { favoritedBy: arrayRemove(auth.currentUser.uid) });
+    }
   };
 
   if (loading) {
@@ -51,12 +91,9 @@ const PostDetailsScreen = ({ route }) => {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
-      {console.log(postDetails)}
       <View style={styles.userContainer}>
         <Text style={[styles.userName, { color: theme.textColor }]}>{postDetails.userName}</Text>
-        
-          <Image source={{ uri: postDetails.userProfilePicture || defaultPicture}} style={styles.userImage} />
-        
+        <Image source={{ uri: postDetails.userProfilePicture || defaultPicture }} style={styles.userImage} />
       </View>
       {postDetails.story && <Text style={[styles.story, { color: theme.textColor }]}>{postDetails.story}</Text>}
       <Text style={[styles.text, { color: theme.textColor }]}>Address Type: {postDetails.addressType}</Text>

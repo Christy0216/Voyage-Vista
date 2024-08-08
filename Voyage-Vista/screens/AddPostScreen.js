@@ -12,6 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useTheme } from '../context/ThemeContext';
 import { auth, db } from '../firebase/firebaseSetUp';
 import { addDoc, collection } from 'firebase/firestore';
+import { createPost } from '../firebase/firebasePostHelper';
 
 const AddPostScreen = ({ navigation }) => {
   const [story, setStory] = useState('');
@@ -33,8 +34,8 @@ const AddPostScreen = ({ navigation }) => {
     };
 
     try {
-      const docRef = await addDoc(collection(db, 'posts'), post);
-      console.log('Post created with ID:', docRef.id);
+      const docRefId = await createPost(auth.currentUser.uid, post);
+      console.log('Post created with ID:', docRefId);
       navigation.goBack();
     } catch (error) {
       console.error('Error adding post:', error);

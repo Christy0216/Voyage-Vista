@@ -90,7 +90,7 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
 ### Contributions Summary:
 
 - **Shirui Chen:** Set up the initial project structure and navigation using React Navigation. Complete Some Screen functionality coding and styling.[Login screen, Signup screen, Setting screen, Profile screen, Favorites screen]
-- **Kai Zong:** Implemented the authentication and connection flow with Firebase, and CRUD operations in applications. Complete Some Screen functionality coding and styling.[Main screen, Post Details screen, Add Post screen, Map screen, Weather Details screen ]
+- **Kai Zong:** Implemented the authentication and connection flow with Firebase, and CRUD operations in applications. Complete Some Screen functionality coding and styling.[Main screen, Post Details screen, Add Post screen, Map screen, Weather Details screen]
 
 
 ## Screenshots

@@ -3,14 +3,17 @@ import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, Touchable
 import { getPostWithUserDetails } from '../firebase/firebasePostHelper';  // Update the import path as needed
 import { useTheme } from '../context/ThemeContext'; // Import the theme context
 import { defaultPicture } from '../reusables/objects'; // Import the default picture
+import { deletePost } from '../firebase/firebasePostHelper';  // Make sure to import the delete function
+import { auth } from '../firebase/firebaseSetUp'; // Import the auth object
 
-const PostDetailsScreen = ({ route }) => {
+const PostDetailsScreen = ({ route, navigation }) => {
   const { postId } = route.params;
   const [postDetails, setPostDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme(); // Use the theme from the context
   const [liked, setLiked] = useState(false);
   const [favorited, setFavorited] = useState(false);
+  const currentUser = auth.currentUser;
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -31,6 +34,13 @@ const PostDetailsScreen = ({ route }) => {
     setFavorited(!favorited);
   };
 
+  const handleDelete = async () => {
+    if (currentUser && (postDetails.uid === currentUser.uid)) {
+      await deletePost(postDetails.userId, postId);
+      navigation.goBack();  // Navigate back or refresh the list
+    }
+  };
+  
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.backgroundColor }]}>
@@ -72,6 +82,11 @@ const PostDetailsScreen = ({ route }) => {
         <TouchableOpacity onPress={toggleFavorite} style={[styles.button, favorited && styles.buttonActive]}>
           <Text style={[styles.buttonText, favorited && styles.buttonTextActive]}>Favorite</Text>
         </TouchableOpacity>
+        {currentUser && postDetails.uid === currentUser.uid && (
+            <TouchableOpacity onPress={handleDelete} style={[styles.button]}>
+                <Text style={styles.buttonText}>Delete</Text>
+            </TouchableOpacity>
+            )}
       </View>
     </ScrollView>
   );

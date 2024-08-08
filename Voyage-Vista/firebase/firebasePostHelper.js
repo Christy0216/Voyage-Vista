@@ -74,9 +74,9 @@ export const getPostWithUserDetails = async (postId) => {
             post: {
               id: postDoc.id,
               ...postData,
-              userName: userDoc.username || 'Unknown', // Assuming the user's name is stored under 'name'
-              userProfilePicture: userDoc.profilePicture || '', // Assuming the user's profile picture URL is stored under 'profilePicture'
-              photos: postData.photos || [] // Default value if photos are missing
+              userName: userDoc.username || 'Unknown', 
+              userProfilePicture: userDoc.profilePicture || '',
+              photos: postData.photos || []
             }
           };
         } else {

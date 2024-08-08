@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useTheme } from '../context/ThemeContext'; // Import the theme context
 import { defaultPicture } from '../reusables/objects'; // Import the default picture
-import { deletePost } from '../firebase/firebasePostHelper';  // Make sure to import the delete function
-import { Alert } from 'react-native';
-import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
-import { updatePost, getPostWithUserDetails, incrementLikesCount, decrementLikesCount, incrementFavoritesCount, decrementFavoritesCount, addPostComment, removePostComment } from '../firebase/firebasePostHelper';
+import { deletePost, updatePost, getPostWithUserDetails, incrementLikesCount, decrementLikesCount, incrementFavoritesCount, decrementFavoritesCount, addPostComment, removePostComment } from '../firebase/firebasePostHelper';
 import { getUser, addUserFavorite, addUserLike, removeUserFavorite, removeUserLike } from '../firebase/firebaseUserHelper';
 import { auth, db } from '../firebase/firebaseSetUp';
 import { updateDoc, arrayUnion, arrayRemove, doc, collection, getDocs } from 'firebase/firestore';
@@ -104,16 +102,18 @@ const PostDetailsScreen = ({ route, navigation }) => {
         "Delete Post",
         "Are you sure you want to delete this post?",
         [
-          { text: "Cancel",  },
-          { text: "Delete", onPress: async () => {
-            await deletePost(postDetails.userId, postId);
-            navigation.goBack();  // Navigate back or refresh the list
-          }},
+          { text: "Cancel" },
+          {
+            text: "Delete", onPress: async () => {
+              await deletePost(postDetails.userId, postId);
+              navigation.goBack();  // Navigate back or refresh the list
+            }
+          },
         ]
       );
     }
   };
-  
+
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.backgroundColor }]}>
@@ -133,7 +133,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-      <ScrollView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
         <View style={styles.userContainer}>
           <Text style={[styles.userName, { color: theme.textColor }]}>{postDetails.userName}</Text>
           <Image source={{ uri: postDetails.userProfilePicture || defaultPicture }} style={styles.userImage} />
@@ -175,11 +175,12 @@ const PostDetailsScreen = ({ route, navigation }) => {
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
         {currentUser && postDetails.uid === currentUser.uid && (
-            <TouchableOpacity onPress={handleDelete} style={[styles.button]}>
-                <Text style={styles.buttonText}>Delete</Text>
-            </TouchableOpacity>
-            )}
+          <TouchableOpacity onPress={handleDelete} style={[styles.button]}>
+            <Text style={styles.buttonText}>Delete</Text>
+          </TouchableOpacity>
+        )}
       </View>
+      <View style={{ height: 100 }} /> 
     </KeyboardAvoidingView>
   );
 };

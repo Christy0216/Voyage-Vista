@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { getPostWithUserDetails } from '../firebase/firebasePostHelper';  // Update the import path as needed
 import { useTheme } from '../context/ThemeContext'; // Import the theme context
 import { defaultPicture } from '../reusables/objects'; // Import the default picture
 import { deletePost } from '../firebase/firebasePostHelper';  // Make sure to import the delete function

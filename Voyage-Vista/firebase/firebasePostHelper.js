@@ -1,6 +1,7 @@
 import { db, auth } from './firebaseSetUp';
-import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, increment, arrayUnion, arrayRemove, limit } from "firebase/firestore";
+import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, increment, arrayUnion, arrayRemove, limit, where } from "firebase/firestore";
 import { addUserPost, removeUserPost, getUser } from './firebaseUserHelper';
+
 
 // Helper function to delete documents in a subcollection in batches
 
@@ -71,9 +72,9 @@ export const getPostWithUserDetails = async (postId) => {
             post: {
               id: postDoc.id,
               ...postData,
-              userName: userDoc.username || 'Unknown', // Assuming the user's name is stored under 'name'
-              userProfilePicture: userDoc.profilePicture || '', // Assuming the user's profile picture URL is stored under 'profilePicture'
-              photos: postData.photos || [] // Default value if photos are missing
+              userName: userDoc.username || 'Unknown', 
+              userProfilePicture: userDoc.profilePicture || '',
+              photos: postData.photos || []
             }
           };
         } else {
@@ -88,6 +89,17 @@ export const getPostWithUserDetails = async (postId) => {
       console.log('Error getting post with user details: ', error);
       return null;
     }
+  };
+
+  // Fetch all posts
+  export const fetchPostsByUserId = async (userId) => {
+    const postsRef = collection(db, 'posts');
+    const q = query(postsRef, where('uid', '==', userId));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   };
 
 // Update a post

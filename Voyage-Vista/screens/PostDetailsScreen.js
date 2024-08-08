@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { getPostWithUserDetails } from '../firebase/firebasePostHelper';  // Update the import path as needed
+import { useTheme } from '../context/ThemeContext'; // Import the theme context
+import { defaultPicture } from '../reusables/objects'; // Import the default picture
+import { deletePost } from '../firebase/firebasePostHelper';  // Make sure to import the delete function
+import { Alert } from 'react-native';
 import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { updatePost, getPostWithUserDetails, incrementLikesCount, decrementLikesCount, incrementFavoritesCount, decrementFavoritesCount, addPostComment, removePostComment } from '../firebase/firebasePostHelper';
-import { useTheme } from '../context/ThemeContext';
-import { defaultPicture } from '../reusables/objects';
 import { getUser, addUserFavorite, addUserLike, removeUserFavorite, removeUserLike } from '../firebase/firebaseUserHelper';
 import { auth, db } from '../firebase/firebaseSetUp';
 import { updateDoc, arrayUnion, arrayRemove, doc, collection, getDocs } from 'firebase/firestore';
 
-const PostDetailsScreen = ({ route }) => {
+const PostDetailsScreen = ({ route, navigation }) => {
   const { postId } = route.params;
   const [postDetails, setPostDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
   const [liked, setLiked] = useState(false);
   const [favorited, setFavorited] = useState(false);
+  const currentUser = auth.currentUser;
   const [userDoc, setUserDoc] = useState(null);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
@@ -95,6 +99,22 @@ const PostDetailsScreen = ({ route }) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (currentUser && (postDetails.uid === currentUser.uid)) {
+      Alert.alert(
+        "Delete Post",
+        "Are you sure you want to delete this post?",
+        [
+          { text: "Cancel",  },
+          { text: "Delete", onPress: async () => {
+            await deletePost(postDetails.userId, postId);
+            navigation.goBack();  // Navigate back or refresh the list
+          }},
+        ]
+      );
+    }
+  };
+  
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.backgroundColor }]}>
@@ -155,6 +175,11 @@ const PostDetailsScreen = ({ route }) => {
         <TouchableOpacity onPress={handleAddComment} style={styles.addButton}>
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
+        {currentUser && postDetails.uid === currentUser.uid && (
+            <TouchableOpacity onPress={handleDelete} style={[styles.button]}>
+                <Text style={styles.buttonText}>Delete</Text>
+            </TouchableOpacity>
+            )}
       </View>
     </KeyboardAvoidingView>
   );

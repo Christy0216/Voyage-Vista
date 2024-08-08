@@ -4,6 +4,7 @@ import { addUserPost, removeUserPost, getUser } from './firebaseUserHelper';
 
 
 // Helper function to delete documents in a subcollection in batches
+
 const deleteSubcollectionInBatches = async (postId, subcollectionName, batchSize = 500) => {
   const subcollectionRef = collection(db, 'posts', postId, subcollectionName);
   
@@ -27,26 +28,22 @@ const deleteSubcollectionInBatches = async (postId, subcollectionName, batchSize
 export const createPost = async (userId, post) => {
   try {
     // Fetch user details from Firestore
-    const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
-
-    if (!userDoc.exists()) {
+    const userDoc = await getUser(userId);
+    if (!userDoc) {
       throw new Error('User not found');
     }
 
-    const userData = userDoc.data();
-
     const postRef = await addDoc(collection(db, 'posts'), {
       ...post,
-      userId: userId,
-      userName: userData.username,
-      userProfilePicture: userData.profilePicture,
       favoritesCount: 0,
       likesCount: 0,
+      favoritedBy: [],
+      likedBy: [],
       createdAt: new Date()
     });
 
-    await addUserPost(userId, postRef.id);
+    console.log(userDoc.id)
+    await addUserPost(userDoc.id, postRef.id);
     console.log('Post created successfully with ID:', postRef.id);
     return postRef.id;
   } catch (error) {

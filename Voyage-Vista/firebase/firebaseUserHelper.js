@@ -66,7 +66,7 @@ export const getUser = async (userId) => {
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
       const userDoc = querySnapshot.docs[0];
-      return { id: userDoc.id, ...userDoc.data() };
+      return ({ id: userDoc.id, ...userDoc.data() });
     } else {
       console.log('No such user!');
       return null;

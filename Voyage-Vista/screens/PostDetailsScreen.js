@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { updatePost, getPostWithUserDetails, incrementLikesCount, decrementLikesCount, incrementFavoritesCount, decrementFavoritesCount } from '../firebase/firebasePostHelper';  // Update the import path as needed
-import { useTheme } from '../context/ThemeContext'; // Import the theme context
-import { defaultPicture } from '../reusables/objects'; // Import the default picture
+import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { updatePost, getPostWithUserDetails, incrementLikesCount, decrementLikesCount, incrementFavoritesCount, decrementFavoritesCount, addPostComment, removePostComment } from '../firebase/firebasePostHelper';
+import { useTheme } from '../context/ThemeContext';
+import { defaultPicture } from '../reusables/objects';
 import { getUser, addUserFavorite, addUserLike, removeUserFavorite, removeUserLike } from '../firebase/firebaseUserHelper';
-import { auth, db } from '../firebase/firebaseSetUp'; // Import Firebase auth and db
-import { updateDoc, arrayUnion, arrayRemove, doc } from 'firebase/firestore';
+import { auth, db } from '../firebase/firebaseSetUp';
+import { updateDoc, arrayUnion, arrayRemove, doc, collection, getDocs } from 'firebase/firestore';
 
 const PostDetailsScreen = ({ route }) => {
   const { postId } = route.params;
   const [postDetails, setPostDetails] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { theme } = useTheme(); // Use the theme from the context
+  const { theme } = useTheme();
   const [liked, setLiked] = useState(false);
   const [favorited, setFavorited] = useState(false);
   const [userDoc, setUserDoc] = useState(null);
+  const [comment, setComment] = useState('');
+  const [comments, setComments] = useState([]);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -24,13 +26,34 @@ const PostDetailsScreen = ({ route }) => {
         const uid = auth.currentUser.uid;
         const user = await getUser(uid);
         setUserDoc(user);
-        setLiked(details.post.likedBy.includes(uid));
-        setFavorited(details.post.favoritedBy.includes(uid));
+        setLiked(details.post.likedBy?.includes(uid));
+        setFavorited(details.post.favoritedBy?.includes(uid));
+        fetchComments(postId);
       }
       setLoading(false);
     };
     fetchDetails();
   }, [postId]);
+
+  const fetchComments = async (postId) => {
+    const commentsRef = collection(db, 'posts', postId, 'comments');
+    const commentsSnapshot = await getDocs(commentsRef);
+    const commentsList = commentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setComments(commentsList);
+  };
+
+  const handleAddComment = async () => {
+    if (comment.trim()) {
+      const newComment = {
+        userId: auth.currentUser.uid,
+        content: comment.trim(),
+        timestamp: new Date(),
+      };
+      await addPostComment(postId, newComment);
+      fetchComments(postId);
+      setComment('');
+    }
+  };
 
   const toggleLike = async () => {
     const newLikedState = !liked;
@@ -90,28 +113,50 @@ const PostDetailsScreen = ({ route }) => {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
-      <View style={styles.userContainer}>
-        <Text style={[styles.userName, { color: theme.textColor }]}>{postDetails.userName}</Text>
-        <Image source={{ uri: postDetails.userProfilePicture || defaultPicture }} style={styles.userImage} />
-      </View>
-      {postDetails.story && <Text style={[styles.story, { color: theme.textColor }]}>{postDetails.story}</Text>}
-      <Text style={[styles.text, { color: theme.textColor }]}>Address Type: {postDetails.addressType}</Text>
-      <Text style={[styles.text, { color: theme.textColor }]}>Likes: {postDetails.likesCount || 0}</Text>
-      <Text style={[styles.text, { color: theme.textColor }]}>Comments: {postDetails.commentsCount || 0}</Text>
-      <Text style={[styles.text, { color: theme.textColor }]}>Favorites: {postDetails.favoritesCount || 0}</Text>
-      {postDetails.photos && postDetails.photos.length > 0 && postDetails.photos.map((photo, index) => (
-        <Image key={index} source={{ uri: photo.url }} style={styles.postImage} />
-      ))}
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity onPress={toggleLike} style={[styles.button, liked && styles.buttonActive]}>
-          <Text style={[styles.buttonText, liked && styles.buttonTextActive]}>Like</Text>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <ScrollView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+        <View style={styles.userContainer}>
+          <Text style={[styles.userName, { color: theme.textColor }]}>{postDetails.userName}</Text>
+          <Image source={{ uri: postDetails.userProfilePicture || defaultPicture }} style={styles.userImage} />
+        </View>
+        {postDetails.story && <Text style={[styles.story, { color: theme.textColor }]}>{postDetails.story}</Text>}
+        <Text style={[styles.text, { color: theme.textColor }]}>Address Type: {postDetails.addressType}</Text>
+        <Text style={[styles.text, { color: theme.textColor }]}>Likes: {postDetails.likesCount || 0}</Text>
+        <Text style={[styles.text, { color: theme.textColor }]}>Comments: {postDetails.commentsCount || 0}</Text>
+        <Text style={[styles.text, { color: theme.textColor }]}>Favorites: {postDetails.favoritesCount || 0}</Text>
+        {postDetails.photos && postDetails.photos.length > 0 && postDetails.photos.map((photo, index) => (
+          <Image key={index} source={{ uri: photo.url }} style={styles.postImage} />
+        ))}
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity onPress={toggleLike} style={[styles.button, liked && styles.buttonActive]}>
+            <Text style={[styles.buttonText, liked && styles.buttonTextActive]}>Like</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={toggleFavorite} style={[styles.button, favorited && styles.buttonActive]}>
+            <Text style={[styles.buttonText, favorited && styles.buttonTextActive]}>Favorite</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.commentsContainer}>
+          <Text style={[styles.label, { color: theme.textColor }]}>Comments:</Text>
+          {comments.map((comment) => (
+            <View key={comment.id} style={styles.comment}>
+              <Text style={[styles.commentText, { color: theme.textColor }]}>{comment.content}</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+      <View style={styles.commentInputContainer}>
+        <TextInput
+          style={[styles.commentInput, { backgroundColor: theme.inputBackground, color: theme.textColor }]}
+          value={comment}
+          onChangeText={setComment}
+          placeholder="Add a comment..."
+          placeholderTextColor={theme.placeholderTextColor}
+        />
+        <TouchableOpacity onPress={handleAddComment} style={styles.addButton}>
+          <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={toggleFavorite} style={[styles.button, favorited && styles.buttonActive]}>
-          <Text style={[styles.buttonText, favorited && styles.buttonTextActive]}>Favorite</Text>
-        </TouchableOpacity>
       </View>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -173,6 +218,46 @@ const styles = StyleSheet.create({
   },
   buttonTextActive: {
     color: '#fff',
+  },
+  commentsContainer: {
+    marginTop: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  comment: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  commentText: {
+    fontSize: 14,
+  },
+  commentInputContainer: {
+    flexDirection: 'row',
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+  },
+  commentInput: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  addButton: {
+    padding: 10,
+    backgroundColor: 'darkmagenta',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 

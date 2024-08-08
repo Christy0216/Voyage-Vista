@@ -10,9 +10,8 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useTheme } from '../context/ThemeContext';
-import { auth, db } from '../firebase/firebaseSetUp';
-import { addDoc, collection } from 'firebase/firestore';
-import { createPost } from '../firebase/firebasePostHelper';
+import { auth } from '../firebase/firebaseSetUp';
+import { createPost, addPostComment } from '../firebase/firebasePostHelper';
 
 const AddPostScreen = ({ navigation }) => {
   const [story, setStory] = useState('');
@@ -20,10 +19,10 @@ const AddPostScreen = ({ navigation }) => {
   const [addressType, setAddressType] = useState('city');
   const [address, setAddress] = useState('');
   const [coordinates, setCoordinates] = useState({ lat: 0, lon: 0 });
+  const [comment, setComment] = useState('');
   const { theme } = useTheme();
 
   const handleSubmit = async () => {
-
     const post = {
       uid: auth.currentUser.uid,
       story,
@@ -36,6 +35,10 @@ const AddPostScreen = ({ navigation }) => {
     try {
       const docRefId = await createPost(auth.currentUser.uid, post);
       console.log('Post created with ID:', docRefId);
+      if (comment) {
+        await addPostComment(docRefId, { content: comment, userId: auth.currentUser.uid, timestamp: new Date() });
+        console.log('Comment added to post successfully');
+      }
       navigation.goBack();
     } catch (error) {
       console.error('Error adding post:', error);
@@ -114,6 +117,18 @@ const AddPostScreen = ({ navigation }) => {
             onChangeText={(lon) => setCoordinates({ ...coordinates, lon: parseFloat(lon) })}
             placeholder="Longitude"
             keyboardType="numeric"
+          />
+        </View>
+
+        <View style={themedStyles.inputContainer}>
+          <Text style={themedStyles.label}>Comment</Text>
+          <TextInput
+            style={themedStyles.textInput}
+            multiline
+            numberOfLines={2}
+            value={comment}
+            onChangeText={setComment}
+            placeholder="Add a comment"
           />
         </View>
       </View>

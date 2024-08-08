@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,16 +10,15 @@ import {
   Alert,
   FlatList,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "../context/ThemeContext";
 import { auth } from "../firebase/firebaseSetUp";
 import { getUser, updateUser } from "../firebase/firebaseUserHelper";
 import { defaultPicture } from "../reusables/objects";
 import PostItem from "../components/PostItem";
-import { deletePost } from "../firebase/firebasePostHelper";
-import { db } from "../firebase/firebaseSetUp";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { Platform } from "react-native";
+import { deletePost, fetchPostsByUserId } from "../firebase/firebasePostHelper";
+import { onAuthStateChanged } from "firebase/auth";
 
 const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState({
@@ -28,154 +27,119 @@ const ProfileScreen = ({ navigation }) => {
     birthday: new Date(),
     profilePicture: defaultPicture,
   });
-  const [editMode, setEditMode] = useState({
-    username: false,
-    birthday: false,
-  });
+  const [docId, setDocId] = useState("");
+  const [editMode, setEditMode] = useState({ username: false, birthday: false });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { theme } = useTheme();
   const [userPosts, setUserPosts] = useState([]);
 
   useEffect(() => {
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        getUser(user.uid).then((userData) => {
-          if (userData) {
-            setUser({
-              userId: user.uid,
-              username: userData.username,
-              birthday: new Date(userData.birthday),
-              profilePicture: userData.profilePicture || defaultPicture,
-            });
-            fetchUserPosts(user.uid);
-          }
-        });
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const userData = await getUser(currentUser.uid);
+        if (userData) {
+          setDocId(userData.id);
+          setUser({
+            ...userData,
+            birthday: userData.birthday ? new Date(userData.birthday) : new Date(),
+            profilePicture: userData.profilePicture || defaultPicture,
+          });
+          fetchUserPosts(currentUser.uid);
+        }
       }
     });
+    return unsubscribe;
   }, []);
 
-  const fetchUserPosts = (userId) => {
-    const postsRef = collection(db, "posts");
-    const q = query(postsRef, where("uid", "==", userId));
-
-    onSnapshot(
-      q,
-      (snapshot) => {
-        const posts = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setUserPosts(posts);
-      },
-      (error) => {
-        console.error("Failed to fetch posts:", error); // Error handling
+  useFocusEffect(
+    useCallback(() => {
+      if (auth.currentUser) {
+        fetchUserPosts(auth.currentUser.uid);
       }
-    );
-  };
+    }, [])
+  );
 
-  const handleDeletePost = async (postId) => {
-    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        onPress: async () => {
-          await deletePost(postId);
-          const updatedPosts = userPosts.filter((post) => post.id !== postId);
-          setUserPosts(updatedPosts);
-        },
-      },
-    ]);
+  const fetchUserPosts = async (userId) => {
+    const posts = await fetchPostsByUserId(userId);
+    console.log("User posts: ", posts);
+    setUserPosts(posts);
   };
 
   const handleSaveChanges = async (field) => {
     if (field === "username") {
-      await updateUser(user.userId, { username: user.username });
+      await updateUser(docId, { username: user.username });
       setEditMode({ ...editMode, [field]: false });
     } else if (field === "birthday") {
-      await updateUser(user.userId, { birthday: user.birthday.toISOString() });
+      await updateUser(docId, { birthday: user.birthday.toISOString() });
       setEditMode({ ...editMode, [field]: false });
+      setShowDatePicker(false);
     }
   };
 
   const handleDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || user.birthday;
-    setShowDatePicker(Platform.OS === "ios");
-    setUser({ ...user, birthday: currentDate });
+    if (event.type === "set") {
+      setUser({ ...user, birthday: currentDate });
+      setShowDatePicker(false);
+    } else {
+      setShowDatePicker(false);
+    }
   };
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
-    >
-      <TouchableOpacity onPress={() => console.log("Edit profile picture")}>
-        <Image
-          source={{ uri: user.profilePicture }}
-          style={styles.profilePicture}
-        />
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+      <TouchableOpacity onPress={()=>{}}>
+        <Image source={{ uri: user.profilePicture }} style={styles.profilePicture} />
       </TouchableOpacity>
 
       <View style={styles.fieldContainer}>
-        <Text style={[styles.label, { color: theme.textColor }]}>
-          Username:
-        </Text>
+        <Text style={[styles.label, { color: theme.textColor }]}>Username:</Text>
         {editMode.username ? (
-          <TextInput
-            style={[
-              styles.input,
-              { color: theme.textColor, borderColor: theme.textColor },
-            ]}
-            value={user.username}
-            onChangeText={(text) => setUser({ ...user, username: text })}
-          />
+          <>
+            <TextInput
+              style={[styles.input, { color: theme.textColor, borderColor: theme.textColor }]}
+              value={user.username}
+              onChangeText={(text) => setUser({ ...user, username: text })}
+            />
+            <Button title="Save" onPress={() => handleSaveChanges("username")} color="darkmagenta" />
+          </>
         ) : (
-          <Text style={[styles.value, { color: theme.textColor }]}>
-            {user.username}
-          </Text>
+          <>
+            <Text style={[styles.value, { color: theme.textColor }]}>{user.username}</Text>
+            <Button title="Edit" onPress={() => setEditMode({ ...editMode, username: true })} color="darkmagenta" />
+          </>
         )}
-        <Button
-          title={editMode.username ? "Save" : "Edit"}
-          onPress={() => {
-            setEditMode({ ...editMode, username: !editMode.username });
-          }}
-          color="darkmagenta"
-        />
       </View>
 
       <View style={styles.fieldContainer}>
-        <Text style={[styles.label, { color: theme.textColor }]}>
-          Birthday:
-        </Text>
-        <TouchableOpacity onPress={() => setShowDatePicker(!showDatePicker)}>
-          <Text style={[styles.value, { color: theme.textColor }]}>
-            {user.birthday.toDateString()}
-          </Text>
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            value={user.birthday}
-            mode="date"
-            display="inline"
-            onChange={handleDateChange}
-            onTouchCancel={() => setShowDatePicker(false)}
-          />
-        )}
-        {editMode.birthday && (
-          <Button
-            title="Save"
-            onPress={() => {
-              handleSaveChanges("birthday");
-              setShowDatePicker(false);
-            }}
-            color="darkmagenta"
-          />
+        <Text style={[styles.label, { color: theme.textColor }]}>Birthday:</Text>
+        {editMode.birthday ? (
+          <>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+              <Text style={[styles.value, { color: theme.textColor }]}>{user.birthday.toDateString()}</Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={user.birthday}
+                mode="date"
+                display="inline"
+                onChange={handleDateChange}
+              />
+            )}
+            <Button title="Save" onPress={() => handleSaveChanges("birthday")} color="darkmagenta" />
+          </>
+        ) : (
+          <>
+            <Text style={[styles.value, { color: theme.textColor }]}>{user.birthday.toDateString()}</Text>
+            <Button title="Edit" onPress={() => {
+              setEditMode({ ...editMode, birthday: true });
+              setShowDatePicker(true);
+            }} color="darkmagenta" />
+          </>
         )}
       </View>
 
-      <Button
-        title="View Favorites"
-        onPress={() => navigation.navigate("FavoritesScreen")}
-        color="darkmagenta"
-      />
+      <Button title="View Favorites" onPress={() => navigation.navigate("FavoritesScreen")} color="darkmagenta" />
 
       <FlatList
         data={userPosts}
@@ -183,8 +147,6 @@ const ProfileScreen = ({ navigation }) => {
         renderItem={({ item }) => (
           <PostItem
             post={item}
-            onDelete={() => handleDeletePost(item.id)}
-            isDeletable={item.userId === auth.currentUser.uid}
           />
         )}
       />

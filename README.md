@@ -37,7 +37,6 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
    - **Create:** on signup
    - **Read:** profile view
    - **Update:** edit profile, manage arrays (add/remove post IDs, favorite post IDs, liked post IDs, comment IDs)
-   - **Delete:** delete profile
 
 
 - **Posts:** Collection of travel posts created by users.
@@ -55,7 +54,7 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
  - **CRUD Operations:**
    - **Create:** post creation
    - **Read:** view posts
-   - **Update:** update post details, increment likes and favorites
+   - **Update:** increment likes and favorites
    - **Delete:** delete post
  - **Subcollections:**
    - **Photos:\*** Stores photos related to the post.
@@ -76,7 +75,6 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
      - **CRUD Operations:**
        - **Create:** add comment
        - **Read:** view comments
-       - **Update:** edit comment
        - **Delete:** delete comment
 
 

@@ -19,6 +19,7 @@ import PostItem from "../components/PostItem";
 import { deletePost } from "../firebase/firebasePostHelper";
 import { db } from "../firebase/firebaseSetUp";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { Platform } from "react-native";
 
 const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState({
@@ -153,7 +154,7 @@ const ProfileScreen = ({ navigation }) => {
           <DateTimePicker
             value={user.birthday}
             mode="date"
-            display="default"
+            display="inline"
             onChange={handleDateChange}
             onTouchCancel={() => setShowDatePicker(false)}
           />

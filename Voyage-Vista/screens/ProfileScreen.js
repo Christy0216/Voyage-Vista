@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
+  Alert,
+  FlatList,
+  Platform,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "../context/ThemeContext";
@@ -14,10 +17,8 @@ import { auth } from "../firebase/firebaseSetUp";
 import { getUser, updateUser } from "../firebase/firebaseUserHelper";
 import { onAuthStateChanged } from "firebase/auth";
 import { defaultPicture } from "../reusables/objects";
-import { FlatList } from "react-native";
 import PostItem from "../components/PostItem";
 import { handleEditProfilePicture, fetchPostsByUserId, deletePost } from "../firebase/firebasePostHelper";
-import { Alert } from "react-native";
 
 const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState({
@@ -61,12 +62,14 @@ const ProfileScreen = ({ navigation }) => {
       "Are you sure you want to delete this post?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Delete", onPress: async () => {
-          await deletePost(postId);
-          fetchUserPosts(auth.currentUser.uid); // Refresh the list after deletion
-          const updatedPosts = userPosts.filter(post => post.id !== postId);
-        setUserPosts(updatedPosts);
-        }},
+        {
+          text: "Delete", onPress: async () => {
+            await deletePost(postId);
+            fetchUserPosts(auth.currentUser.uid); // Refresh the list after deletion
+            const updatedPosts = userPosts.filter(post => post.id !== postId);
+            setUserPosts(updatedPosts);
+          }
+        },
       ]
     );
   };
@@ -78,6 +81,17 @@ const ProfileScreen = ({ navigation }) => {
     } else if (field === "birthday") {
       await updateUser(docId, { birthday: user.birthday.toISOString() });
       setEditMode({ ...editMode, [field]: false });
+      setShowDatePicker(false);
+    }
+  };
+
+  const handleDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || user.birthday;
+    if (event.type === "set") {
+      setUser({ ...user, birthday: currentDate });
+      setShowDatePicker(false);
+    } else {
+      setShowDatePicker(false);
     }
   };
 
@@ -110,18 +124,26 @@ const ProfileScreen = ({ navigation }) => {
         <Text style={[styles.label, { color: theme.textColor }]}>Birthday:</Text>
         {editMode.birthday ? (
           <>
-            <DateTimePicker
-              value={user.birthday}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-            />
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+              <Text style={[styles.value, { color: theme.textColor }]}>{user.birthday.toDateString()}</Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={user.birthday}
+                mode="date"
+                display="default"
+                onChange={handleDateChange}
+              />
+            )}
             <Button title="Save" onPress={() => handleSaveChanges("birthday")} color="darkmagenta" />
           </>
         ) : (
           <>
             <Text style={[styles.value, { color: theme.textColor }]}>{user.birthday.toDateString()}</Text>
-            <Button title="Edit" onPress={() => setEditMode({ ...editMode, birthday: true })} color="darkmagenta" />
+            <Button title="Edit" onPress={() => {
+              setEditMode({ ...editMode, birthday: true });
+              setShowDatePicker(true);
+            }} color="darkmagenta" />
           </>
         )}
       </View>

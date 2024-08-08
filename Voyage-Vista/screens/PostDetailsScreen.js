@@ -105,7 +105,8 @@ const PostDetailsScreen = ({ route, navigation }) => {
           { text: "Cancel" },
           {
             text: "Delete", onPress: async () => {
-              await deletePost(postDetails.userId, postId);
+              const userDoc = await getUser(currentUser.uid);
+              await deletePost(userDoc.id, postId);
               navigation.goBack();  // Navigate back or refresh the list
             }
           },

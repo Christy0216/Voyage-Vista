@@ -8,7 +8,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import DropDownPicker from 'react-native-dropdown-picker';
 import { useTheme } from '../context/ThemeContext';
 import { auth } from '../firebase/firebaseSetUp';
 import { createPost, addPostComment } from '../firebase/firebasePostHelper';
@@ -21,6 +21,12 @@ const AddPostScreen = ({ navigation }) => {
   const [coordinates, setCoordinates] = useState({ lat: 0, lon: 0 });
   const [comment, setComment] = useState('');
   const { theme } = useTheme();
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState([
+    { label: 'City', value: 'city' },
+    { label: 'County', value: 'county' },
+    { label: 'Street Address', value: 'streetAddress' },
+  ]);
 
   const handleSubmit = async () => {
     const post = {
@@ -86,20 +92,25 @@ const AddPostScreen = ({ navigation }) => {
           />
         </View>
 
-        <View style={themedStyles.inputContainer}>
+        <View style={{ ...themedStyles.inputContainer, zIndex: 1000 }}>
           <Text style={themedStyles.label}>Address Type</Text>
-          <Picker
-            selectedValue={addressType}
-            onValueChange={(itemValue) => setAddressType(itemValue)}
+          <DropDownPicker
+            open={open}
+            value={addressType}
+            items={items}
+            setOpen={setOpen}
+            setValue={setAddressType}
+            setItems={setItems}
             style={themedStyles.picker}
-            itemStyle={{
-              color: theme.textColor
+            dropDownContainerStyle={{
+              backgroundColor: theme.backgroundColor,
             }}
-          >
-            <Picker.Item label="City" value="city" />
-            <Picker.Item label="County" value="county" />
-            <Picker.Item label="Street Address" value="streetAddress" />
-          </Picker>
+            textStyle={{
+              color: theme.textColor,
+            }}
+            zIndex={3000}
+            zIndexInverse={1000}
+          />
         </View>
 
         <View style={themedStyles.inputContainer}>
@@ -169,9 +180,8 @@ const styles = (theme) => StyleSheet.create({
     backgroundColor: '#fff',
   },
   picker: {
-    height: 50,
-    width: '100%',
     backgroundColor: theme.backgroundColor,
+    borderColor: theme.textColor,
   },
 });
 

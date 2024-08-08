@@ -14,6 +14,10 @@ import { auth } from "../firebase/firebaseSetUp";
 import { getUser, updateUser } from "../firebase/firebaseUserHelper";
 import { onAuthStateChanged } from "firebase/auth";
 import { defaultPicture } from "../reusables/objects";
+import { FlatList } from "react-native";
+import PostItem from "../components/PostItem";
+import { handleEditProfilePicture, fetchPostsByUserId, deletePost } from "../firebase/firebasePostHelper";
+import { Alert } from "react-native";
 
 const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState({
@@ -26,6 +30,7 @@ const ProfileScreen = ({ navigation }) => {
   const [editMode, setEditMode] = useState({ username: false, birthday: false });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { theme } = useTheme();
+  const [userPosts, setUserPosts] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -38,40 +43,48 @@ const ProfileScreen = ({ navigation }) => {
             birthday: userData.birthday ? new Date(userData.birthday) : new Date(),
             profilePicture: userData.profilePicture || defaultPicture,
           });
+          fetchUserPosts(currentUser.uid);
         }
       }
     });
-
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
-  const handleEditProfilePicture = () => {
-    console.log("Edit profile picture");
+  const fetchUserPosts = async (userId) => {
+    const posts = await fetchPostsByUserId(userId);
+    setUserPosts(posts);
   };
 
-  const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setUser({ ...user, birthday: selectedDate });
-    }
+  const handleDeletePost = async (postId) => {
+    Alert.alert(
+      "Delete Post",
+      "Are you sure you want to delete this post?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", onPress: async () => {
+          await deletePost(postId);
+          fetchUserPosts(auth.currentUser.uid); // Refresh the list after deletion
+          const updatedPosts = userPosts.filter(post => post.id !== postId);
+        setUserPosts(updatedPosts);
+        }},
+      ]
+    );
   };
 
   const handleSaveChanges = async (field) => {
     if (field === "username") {
       await updateUser(docId, { username: user.username });
+      setEditMode({ ...editMode, [field]: false });
     } else if (field === "birthday") {
       await updateUser(docId, { birthday: user.birthday.toISOString() });
+      setEditMode({ ...editMode, [field]: false });
     }
-    setEditMode({ ...editMode, [field]: false });
   };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <TouchableOpacity onPress={handleEditProfilePicture}>
-        <Image
-          source={{ uri: user.profilePicture }}
-          style={styles.profilePicture}
-        />
+        <Image source={{ uri: user.profilePicture }} style={styles.profilePicture} />
       </TouchableOpacity>
 
       <View style={styles.fieldContainer}>
@@ -83,20 +96,12 @@ const ProfileScreen = ({ navigation }) => {
               value={user.username}
               onChangeText={(text) => setUser({ ...user, username: text })}
             />
-            <Button
-              title="Save"
-              onPress={() => handleSaveChanges("username")}
-              color="darkmagenta"
-            />
+            <Button title="Save" onPress={() => handleSaveChanges("username")} color="darkmagenta" />
           </>
         ) : (
           <>
             <Text style={[styles.value, { color: theme.textColor }]}>{user.username}</Text>
-            <Button
-              title="Edit"
-              onPress={() => setEditMode({ ...editMode, username: true })}
-              color="darkmagenta"
-            />
+            <Button title="Edit" onPress={() => setEditMode({ ...editMode, username: true })} color="darkmagenta" />
           </>
         )}
       </View>
@@ -111,28 +116,28 @@ const ProfileScreen = ({ navigation }) => {
               display="default"
               onChange={handleDateChange}
             />
-            <Button
-              title="Save"
-              onPress={() => handleSaveChanges("birthday")}
-              color="darkmagenta"
-            />
+            <Button title="Save" onPress={() => handleSaveChanges("birthday")} color="darkmagenta" />
           </>
         ) : (
           <>
             <Text style={[styles.value, { color: theme.textColor }]}>{user.birthday.toDateString()}</Text>
-            <Button
-              title="Edit"
-              onPress={() => setEditMode({ ...editMode, birthday: true })}
-              color="darkmagenta"
-            />
+            <Button title="Edit" onPress={() => setEditMode({ ...editMode, birthday: true })} color="darkmagenta" />
           </>
         )}
       </View>
 
-      <Button
-        title="View Favorites"
-        onPress={() => navigation.navigate("FavoritesScreen")}
-        color="darkmagenta"
+      <Button title="View Favorites" onPress={() => navigation.navigate("FavoritesScreen")} color="darkmagenta" />
+
+      <FlatList
+        data={userPosts}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <PostItem
+            post={item}
+            onDelete={() => handleDeletePost(item.id)}
+            isDeletable={item.userId === auth.currentUser.uid}
+          />
+        )}
       />
     </View>
   );

@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext'; // Import the theme context
 import { defaultPicture } from '../reusables/objects'; // Import the default picture
 import { deletePost } from '../firebase/firebasePostHelper';  // Make sure to import the delete function
 import { auth } from '../firebase/firebaseSetUp'; // Import the auth object
+import { Alert } from 'react-native';
 
 const PostDetailsScreen = ({ route, navigation }) => {
   const { postId } = route.params;
@@ -36,8 +37,17 @@ const PostDetailsScreen = ({ route, navigation }) => {
 
   const handleDelete = async () => {
     if (currentUser && (postDetails.uid === currentUser.uid)) {
-      await deletePost(postDetails.userId, postId);
-      navigation.goBack();  // Navigate back or refresh the list
+      Alert.alert(
+        "Delete Post",
+        "Are you sure you want to delete this post?",
+        [
+          { text: "Cancel",  },
+          { text: "Delete", onPress: async () => {
+            await deletePost(postDetails.userId, postId);
+            navigation.goBack();  // Navigate back or refresh the list
+          }},
+        ]
+      );
     }
   };
   

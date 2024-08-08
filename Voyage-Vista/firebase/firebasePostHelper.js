@@ -1,6 +1,7 @@
 import { db, auth } from './firebaseSetUp';
-import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, increment, arrayUnion, arrayRemove, limit } from "firebase/firestore";
+import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, increment, arrayUnion, arrayRemove, limit, where } from "firebase/firestore";
 import { addUserPost, removeUserPost, getUser } from './firebaseUserHelper';
+
 
 // Helper function to delete documents in a subcollection in batches
 const deleteSubcollectionInBatches = async (postId, subcollectionName, batchSize = 500) => {
@@ -91,6 +92,17 @@ export const getPostWithUserDetails = async (postId) => {
       console.log('Error getting post with user details: ', error);
       return null;
     }
+  };
+
+  // Fetch all posts
+  export const fetchPostsByUserId = async (userId) => {
+    const postsRef = collection(db, 'posts');
+    const q = query(postsRef, where('uid', '==', userId));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   };
 
 // Update a post

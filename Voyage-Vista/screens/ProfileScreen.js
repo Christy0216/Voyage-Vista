@@ -122,7 +122,7 @@ const ProfileScreen = ({ navigation }) => {
               <DateTimePicker
                 value={user.birthday}
                 mode="date"
-                display="default"
+                display="inline"
                 onChange={handleDateChange}
               />
             )}

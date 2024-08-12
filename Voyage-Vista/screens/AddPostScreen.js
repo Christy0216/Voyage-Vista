@@ -104,6 +104,13 @@ const AddPostScreen = ({ navigation }) => {
         });
         console.log("Comment added to post successfully");
       }
+      setStory("");
+      setDestination("");
+      setAddressType("city");
+      setAddress("");
+      setCoordinates({ lat: 0, lon: 0 });
+      setComment("");
+      setImages([]);
       navigation.goBack();
     } catch (error) {
       console.error("Error adding post:", error);

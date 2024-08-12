@@ -53,45 +53,45 @@ export default function App() {
 
   return (
     <ThemeProvider>
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerStyle: { backgroundColor: "white" },
-          headerTintColor: "black",
-        }}
-      >
-        {isUserAuthenticated ? (
-          <>
-        <Stack.Screen
-          name="HomeTabs"
-          component={AppTabs}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="PostDetailsScreen"
-          component={PostDetailsScreen}
-          options={{ headerShown: true }}
-        />
-        <Stack.Screen
-          name="FavoritesScreen"
-          component={FavoritesScreen}
-          options={{ headerShown: true }}
-        />
-        <Stack.Screen
-          name="WeatherDetailsScreen"
-          component={WeatherDetailsScreen}
-          options={{ headerShown: true }}
-        />
-        </>
-         ) : (
-          <Stack.Screen
-            name="Auth"
-            component={AuthStack}
-            options={{ headerShown: false }}
-          />
-        )} 
-      </Stack.Navigator>
-    </NavigationContainer>
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{
+            headerStyle: { backgroundColor: "white" },
+            headerTintColor: "black",
+          }}
+        >
+          {isUserAuthenticated ? (
+            <>
+              <Stack.Screen
+                name="HomeTabs"
+                component={AppTabs}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="PostDetailsScreen"
+                component={PostDetailsScreen}
+                options={{ headerShown: true }}
+              />
+              <Stack.Screen
+                name="FavoritesScreen"
+                component={FavoritesScreen}
+                options={{ headerShown: true }}
+              />
+              <Stack.Screen
+                name="WeatherDetailsScreen"
+                component={WeatherDetailsScreen}
+                options={{ headerShown: true }}
+              />
+            </>
+          ) : (
+            <Stack.Screen
+              name="Auth"
+              component={AuthStack}
+              options={{ headerShown: false }}
+            />
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
     </ThemeProvider>
   );
 }

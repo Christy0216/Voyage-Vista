@@ -26,21 +26,26 @@ const MainScreen = () => {
         fetchProfilePhoto();
 
         const postsCollectionRef = collection(db, 'posts');
-        const unsubscribe = onSnapshot(postsCollectionRef, async (snapshot) => {
-            const postsList = await Promise.all(snapshot.docs.map(async doc => {
-                const postData = doc.data();
-                const userData = await getUser(postData.uid);
-                return {
-                    id: doc.id,
-                    ...postData,
-                    userName: userData ? userData.name : 'Unknown',
-                    userProfilePicture: userData ? userData.profilePicture || defaultPicture : defaultPicture
-                };
-            }));
-            setPosts(postsList);
-        });
+const unsubscribe = onSnapshot(postsCollectionRef, async (snapshot) => {
+    const postsList = await Promise.all(snapshot.docs.map(async doc => {
+        const postData = doc.data();
+        const userData = await getUser(postData.uid);
 
-        return () => unsubscribe(); // Cleanup listener on unmount
+        // Directly use images if available
+        const photos = postData.images || [];
+
+        return {
+            id: doc.id,
+            ...postData,
+            userName: userData ? userData.name : 'Unknown',
+            userProfilePicture: userData ? userData.profilePicture || defaultPicture : defaultPicture,
+            photos: photos.map(url => ({ url })), // Map each URL to an object if needed
+        };
+    }));
+    setPosts(postsList);
+});
+
+return () => unsubscribe();
     }, []);
 
     return (

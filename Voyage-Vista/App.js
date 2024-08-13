@@ -12,6 +12,7 @@ import ProfileScreen from "./screens/ProfileScreen";
 import SettingScreen from "./screens/SettingScreen";
 import PostDetailsScreen from "./screens/PostDetailsScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
+import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import { ThemeProvider } from './context/ThemeContext';
 import WeatherDetailsScreen from "./screens/WeatherDetailsScreen";
 import { auth } from "./firebase/firebaseSetUp";
@@ -26,6 +27,7 @@ function AuthStack() {
     <Stack.Navigator>
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Signup" component={Signup} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>
   );
 }

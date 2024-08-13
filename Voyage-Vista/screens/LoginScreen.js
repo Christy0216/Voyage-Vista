@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, Button, Alert, StyleSheet, TouchableOpacity } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebaseSetUp";
 import { useTheme } from '../context/ThemeContext';
@@ -34,6 +34,10 @@ export default function Login({ navigation }) {
     }
   };
 
+  const forgotPasswordHandler = () => {
+    navigation.navigate("ForgotPassword");
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <Text style={[styles.label, { color: theme.textColor }]}>Email</Text>
@@ -57,9 +61,13 @@ export default function Login({ navigation }) {
       />
       <Button title="Login" onPress={loginHandler} color={theme.buttonColor} />
       <View style={styles.space} />
+      
+      <TouchableOpacity onPress={forgotPasswordHandler}>
+        <Text style={{ color: theme.linkColor }}>Forgot Password?</Text>
+      </TouchableOpacity>
 
+      <View style={styles.space} />
       <Button title="Signup" onPress={signupHandler} color={theme.buttonColor} />
-
     </View>
   );
 }

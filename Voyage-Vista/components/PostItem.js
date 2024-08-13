@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 
 const PostItem = ({ post }) => {
@@ -22,15 +22,17 @@ const PostItem = ({ post }) => {
                     <Text style={styles.count}>Favorites: {post.favoritesCount || 0}</Text>
                     <Text style={styles.count}>Likes: {post.likesCount || 0}</Text>
                 </View>
-                <View style={styles.photosContainer}>
-                    {post.photos && post.photos.slice(0, 4).map((photo, index) => (
-                        <Image
-                            key={index}
-                            source={{ uri: photo.url }}
-                            style={styles.photo}
-                        />
-                    ))}
-                </View>
+                {post.photos && post.photos.length > 0 && (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosContainer}>
+                        {post.photos.slice(0, 4).map((photo, index) => (
+                            <Image
+                                key={index}
+                                source={{ uri: photo.url }}
+                                style={styles.photo}
+                            />
+                        ))}
+                    </ScrollView>
+                )}
             </View>
         </TouchableOpacity>
     );
@@ -74,13 +76,13 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     photo: {
-        width: "100%",
-        height: 200,
-        marginBottom: 8,
+        width: 100,
+        height: 100,
+        marginRight: 10,
     },
     photosContainer: {
         flexDirection: "row",
-        marginTop: 5,
+        marginBottom: 10,
     },
 });
 

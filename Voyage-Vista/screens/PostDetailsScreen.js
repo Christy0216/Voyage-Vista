@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  FlatList,
 } from "react-native";
 import { useTheme } from "../context/ThemeContext"; // Import the theme context
 import { defaultPicture } from "../reusables/objects"; // Import the default picture
@@ -50,7 +51,6 @@ const PostDetailsScreen = ({ route, navigation }) => {
   const [liked, setLiked] = useState(false);
   const [favorited, setFavorited] = useState(false);
   const currentUser = auth.currentUser;
-  const [userDoc, setUserDoc] = useState(null);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
 
@@ -59,15 +59,13 @@ const PostDetailsScreen = ({ route, navigation }) => {
       const details = await getPostWithUserDetails(postId);
       if (details) {
         setPostDetails(details.post);
-        const uid = auth.currentUser.uid;
-        const user = await getUser(uid);
-        setUserDoc(user);
-        setLiked(details.post.likedBy?.includes(uid));
-        setFavorited(details.post.favoritedBy?.includes(uid));
+        setLiked(details.post.likedBy?.includes(currentUser.uid));
+        setFavorited(details.post.favoritedBy?.includes(currentUser.uid));
         fetchComments(postId);
       }
       setLoading(false);
     };
+
     fetchDetails();
   }, [postId]);
 
@@ -84,7 +82,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
   const handleAddComment = async () => {
     if (comment.trim()) {
       const newComment = {
-        userId: auth.currentUser.uid,
+        userId: currentUser.uid,
         content: comment.trim(),
         timestamp: new Date(),
       };
@@ -97,56 +95,24 @@ const PostDetailsScreen = ({ route, navigation }) => {
   const toggleLike = async () => {
     const newLikedState = !liked;
     setLiked(newLikedState);
-    setPostDetails((prevDetails) => ({
-      ...prevDetails,
-      likesCount: newLikedState
-        ? prevDetails.likesCount + 1
-        : prevDetails.likesCount - 1,
-      likedBy: newLikedState
-        ? [...prevDetails.likedBy, auth.currentUser.uid]
-        : prevDetails.likedBy.filter((uid) => uid !== auth.currentUser.uid),
-    }));
-
     if (newLikedState) {
-      await addUserLike(userDoc.id, postId);
+      await addUserLike(currentUser.uid, postId);
       await incrementLikesCount(postId);
-      await updateDoc(doc(db, "posts", postId), {
-        likedBy: arrayUnion(auth.currentUser.uid),
-      });
     } else {
-      await removeUserLike(userDoc.id, postId);
+      await removeUserLike(currentUser.uid, postId);
       await decrementLikesCount(postId);
-      await updateDoc(doc(db, "posts", postId), {
-        likedBy: arrayRemove(auth.currentUser.uid),
-      });
     }
   };
 
   const toggleFavorite = async () => {
     const newFavoritedState = !favorited;
     setFavorited(newFavoritedState);
-    setPostDetails((prevDetails) => ({
-      ...prevDetails,
-      favoritesCount: newFavoritedState
-        ? prevDetails.favoritesCount + 1
-        : prevDetails.favoritesCount - 1,
-      favoritedBy: newFavoritedState
-        ? [...prevDetails.favoritedBy, auth.currentUser.uid]
-        : prevDetails.favoritedBy.filter((uid) => uid !== auth.currentUser.uid),
-    }));
-
     if (newFavoritedState) {
-      await addUserFavorite(userDoc.id, postId);
+      await addUserFavorite(currentUser.uid, postId);
       await incrementFavoritesCount(postId);
-      await updateDoc(doc(db, "posts", postId), {
-        favoritedBy: arrayUnion(auth.currentUser.uid),
-      });
     } else {
-      await removeUserFavorite(userDoc.id, postId);
+      await removeUserFavorite(currentUser.uid, postId);
       await decrementFavoritesCount(postId);
-      await updateDoc(doc(db, "posts", postId), {
-        favoritedBy: arrayRemove(auth.currentUser.uid),
-      });
     }
   };
 
@@ -157,9 +123,8 @@ const PostDetailsScreen = ({ route, navigation }) => {
         {
           text: "Delete",
           onPress: async () => {
-            const userDoc = await getUser(currentUser.uid);
-            await deletePost(userDoc.id, postId);
-            navigation.goBack(); // Navigate back or refresh the list
+            await deletePost(currentUser.uid, postId);
+            navigation.goBack();
           },
         },
       ]);
@@ -169,7 +134,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
   const handleLongPressComment = (comment) => {
     if (
       currentUser.uid === comment.userId ||
-      currentUser.uid === postDetails.userId
+      currentUser.uid === postDetails.uid
     ) {
       Alert.alert(
         "Delete Comment?",
@@ -238,27 +203,23 @@ const PostDetailsScreen = ({ route, navigation }) => {
             {postDetails.story}
           </Text>
         )}
-        <Text style={[styles.text, { color: theme.textColor }]}>
-          Address Type: {postDetails.addressType}
-        </Text>
-        <Text style={[styles.text, { color: theme.textColor }]}>
-          Likes: {postDetails.likesCount || 0}
-        </Text>
-        <Text style={[styles.text, { color: theme.textColor }]}>
-          Comments: {postDetails.commentsCount || 0}
-        </Text>
-        <Text style={[styles.text, { color: theme.textColor }]}>
-          Favorites: {postDetails.favoritesCount || 0}
-        </Text>
-        {postDetails.photos &&
-          postDetails.photos.length > 0 &&
-          postDetails.photos.map((photo, index) => (
-            <Image
-              key={index}
-              source={{ uri: photo.url }}
-              style={styles.postImage}
-            />
-          ))}
+        <ScrollView
+          horizontal={false}
+          contentContainerStyle={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "left",
+          }}
+        >
+          {postDetails.images &&
+            postDetails.images.map((image, index) => (
+              <Image
+                key={index}
+                source={{ uri: image }}
+                style={styles.postImage}
+              />
+            ))}
+        </ScrollView>
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
             onPress={toggleLike}
@@ -355,10 +316,12 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   postImage: {
-    width: "100%",
+    width: "30%",
     height: 200,
     resizeMode: "cover",
     marginVertical: 10,
+    marginRight: 2,
+    marginLeft: 2,
   },
   buttonsContainer: {
     flexDirection: "row",

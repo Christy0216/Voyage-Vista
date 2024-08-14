@@ -22,6 +22,7 @@ import { deletePost, fetchPostsByUserId } from "../firebase/firebasePostHelper";
 import { onAuthStateChanged } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
+import ThemedButton from "../components/ThemedButton";
 
 const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState({
@@ -164,7 +165,7 @@ const ProfileScreen = ({ navigation }) => {
           Username:
         </Text>
         {editMode.username ? (
-          <View>
+          <View style={styles.inputRow}>
             <TextInput
               style={[
                 styles.input,
@@ -173,18 +174,18 @@ const ProfileScreen = ({ navigation }) => {
               value={user.username}
               onChangeText={(text) => setUser({ ...user, username: text })}
             />
-            <Button
+            <ThemedButton
               title="Save"
               onPress={() => handleSaveChanges("username")}
               color="darkmagenta"
             />
           </View>
         ) : (
-          <View>
+          <View style={styles.inputRow}>
             <Text style={[styles.value, { color: theme.textColor }]}>
               {user.username}
             </Text>
-            <Button
+            <ThemedButton
               title="Edit"
               onPress={() => setEditMode({ ...editMode, username: true })}
               color="darkmagenta"
@@ -198,7 +199,7 @@ const ProfileScreen = ({ navigation }) => {
           Birthday:
         </Text>
         {editMode.birthday ? (
-          <View>
+          <View style={styles.inputRow}>
             <TouchableOpacity onPress={() => setShowDatePicker(true)}>
               <Text style={[styles.value, { color: theme.textColor }]}>
                 {user.birthday.toDateString()}
@@ -212,18 +213,18 @@ const ProfileScreen = ({ navigation }) => {
                 onChange={handleDateChange}
               />
             )}
-            <Button
+            <ThemedButton
               title="Save"
               onPress={() => handleSaveChanges("birthday")}
               color="darkmagenta"
             />
           </View>
         ) : (
-          <View>
+          <View style={styles.inputRow}>
             <Text style={[styles.value, { color: theme.textColor }]}>
               {user.birthday.toDateString()}
             </Text>
-            <Button
+            <ThemedButton
               title="Edit"
               onPress={() => {
                 setEditMode({ ...editMode, birthday: true });
@@ -235,10 +236,9 @@ const ProfileScreen = ({ navigation }) => {
         )}
       </View>
 
-      <Button
+      <ThemedButton
         title="View Favorites"
         onPress={() => navigation.navigate("FavoritesScreen")}
-        color="darkmagenta"
       />
 
       <FlatList
@@ -271,6 +271,11 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   input: {
     height: 40,

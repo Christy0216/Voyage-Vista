@@ -44,6 +44,7 @@ import {
 } from "firebase/firestore";
 import ThemedButton from "../components/ThemedButton";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { themes } from "../styles/themes";
 
 const PostDetailsScreen = ({ route, navigation }) => {
   const { postId } = route.params;
@@ -232,6 +233,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0} 
     >
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
@@ -289,7 +291,12 @@ const PostDetailsScreen = ({ route, navigation }) => {
           ))}
         </View>
       </ScrollView>
-      <View style={styles.commentInputContainer}>
+      <View
+        style={[
+          styles.commentInputContainer,
+          { backgroundColor: theme.backgroundColor },
+        ]}
+      >
         <TextInput
           style={[
             styles.commentInput,
@@ -302,7 +309,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
         />
         <ThemedButton title="Add" onPress={handleAddComment} />
       </View>
-      <View style={{ height: 100 }} />
+      <View style={{ padding: 10, backgroundColor: theme.backgroundColor }} />
     </KeyboardAvoidingView>
   );
 };
@@ -328,12 +335,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   userName: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
   },
   story: {
-    fontSize: 16,
+    fontSize: 20,
     marginBottom: 10,
   },
   text: {

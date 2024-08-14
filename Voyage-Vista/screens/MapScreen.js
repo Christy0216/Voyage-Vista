@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Button, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import CitySelectionModal from '../modal/CitySelectionModal';
 import { useTheme } from '../context/ThemeContext';
+import { useNavigation } from '@react-navigation/native';
+import { Map } from '../components/Map';
 
 const MapScreen = ({ navigation }) => {
   const [city, setCity] = useState('Vancouver');
@@ -28,7 +30,7 @@ const MapScreen = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       {/* Part 1: Pressable view to show and select city */}
       <TouchableOpacity onPress={handleOpenModal}>
-        <View>
+        <View style={styles.cityContainer}>
           <Text style={{ color: theme.textColor }}>City: {city}</Text>
         </View>
       </TouchableOpacity>
@@ -42,15 +44,15 @@ const MapScreen = ({ navigation }) => {
 
       {/* Part 2: Pressable view for weather summary */}
       <TouchableOpacity onPress={handleWeatherSummaryPress}>
-        <View>
+        <View style={styles.weatherSummaryContainer}>
           <Text style={{ color: theme.textColor }}>Weather Summary for {city}</Text>
           {/* Add more detailed weather summary information here */}
         </View>
       </TouchableOpacity>
 
-      {/* Part 3: Map view (placeholder for now) */}
-      <View style={styles.mapView}>
-        <Text style={{ color: theme.textColor }}>Map View</Text>
+      {/* Part 3: Map view */}
+      <View style={styles.mapContainer}>
+        <Map />
       </View>
     </View>
   );
@@ -59,11 +61,20 @@ const MapScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
   },
-  mapView: {
-    flex: 1,
+  cityContainer: {
+    marginBottom: 20,
+  },
+  weatherSummaryContainer: {
+    marginBottom: 20,
+  },
+  mapContainer: {
+    height: 200,  // Adjust this value to make the map smaller or larger
     backgroundColor: 'lightgray',
-  }
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
 });
 
 export default MapScreen;

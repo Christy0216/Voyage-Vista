@@ -85,7 +85,6 @@ export const updateUser = async (docId, userData) => {
       console.log('User updated successfully');
     } catch (error) {
       console.error('Error updating user:', error);
-      throw new Error(error);
     }
   };
 

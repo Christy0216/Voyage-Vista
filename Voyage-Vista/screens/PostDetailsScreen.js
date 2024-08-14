@@ -51,6 +51,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
   const [liked, setLiked] = useState(false);
   const [favorited, setFavorited] = useState(false);
   const currentUser = auth.currentUser;
+  const [userDoc, setUserDoc] = useState(null);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
 
@@ -59,6 +60,9 @@ const PostDetailsScreen = ({ route, navigation }) => {
       const details = await getPostWithUserDetails(postId);
       if (details) {
         setPostDetails(details.post);
+        const uid = auth.currentUser.uid;
+        const user = await getUser(uid);
+        setUserDoc(user);
         setLiked(details.post.likedBy?.includes(currentUser.uid));
         setFavorited(details.post.favoritedBy?.includes(currentUser.uid));
         fetchComments(postId);
@@ -95,24 +99,56 @@ const PostDetailsScreen = ({ route, navigation }) => {
   const toggleLike = async () => {
     const newLikedState = !liked;
     setLiked(newLikedState);
+    setPostDetails((prevDetails) => ({
+      ...prevDetails,
+      likesCount: newLikedState
+        ? prevDetails.likesCount + 1
+        : prevDetails.likesCount - 1,
+      likedBy: newLikedState
+        ? [...prevDetails.likedBy, auth.currentUser.uid]
+        : prevDetails.likedBy.filter((uid) => uid !== auth.currentUser.uid),
+    }));
+
     if (newLikedState) {
-      await addUserLike(currentUser.uid, postId);
+      await addUserLike(userDoc.id, postId);
       await incrementLikesCount(postId);
+      await updateDoc(doc(db, "posts", postId), {
+        likedBy: arrayUnion(auth.currentUser.uid),
+      });
     } else {
-      await removeUserLike(currentUser.uid, postId);
+      await removeUserLike(userDoc.id, postId);
       await decrementLikesCount(postId);
+      await updateDoc(doc(db, "posts", postId), {
+        likedBy: arrayRemove(auth.currentUser.uid),
+      });
     }
   };
 
   const toggleFavorite = async () => {
     const newFavoritedState = !favorited;
     setFavorited(newFavoritedState);
+    setPostDetails((prevDetails) => ({
+      ...prevDetails,
+      favoritesCount: newFavoritedState
+        ? prevDetails.favoritesCount + 1
+        : prevDetails.favoritesCount - 1,
+      favoritedBy: newFavoritedState
+        ? [...prevDetails.favoritedBy, auth.currentUser.uid]
+        : prevDetails.favoritedBy.filter((uid) => uid !== auth.currentUser.uid),
+    }));
+
     if (newFavoritedState) {
-      await addUserFavorite(currentUser.uid, postId);
+      await addUserFavorite(userDoc.id, postId);
       await incrementFavoritesCount(postId);
+      await updateDoc(doc(db, "posts", postId), {
+        favoritedBy: arrayUnion(auth.currentUser.uid),
+      });
     } else {
-      await removeUserFavorite(currentUser.uid, postId);
+      await removeUserFavorite(userDoc.id, postId);
       await decrementFavoritesCount(postId);
+      await updateDoc(doc(db, "posts", postId), {
+        favoritedBy: arrayRemove(auth.currentUser.uid),
+      });
     }
   };
 

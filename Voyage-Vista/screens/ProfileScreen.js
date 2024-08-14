@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Alert,
   FlatList,
+  Platform,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -19,6 +20,8 @@ import { defaultPicture } from "../reusables/objects";
 import PostItem from "../components/PostItem";
 import { deletePost, fetchPostsByUserId } from "../firebase/firebasePostHelper";
 import { onAuthStateChanged } from "firebase/auth";
+import * as ImagePicker from "expo-image-picker";
+import * as Permissions from "expo-permissions";
 
 const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState({
@@ -28,7 +31,10 @@ const ProfileScreen = ({ navigation }) => {
     profilePicture: defaultPicture,
   });
   const [docId, setDocId] = useState("");
-  const [editMode, setEditMode] = useState({ username: false, birthday: false });
+  const [editMode, setEditMode] = useState({
+    username: false,
+    birthday: false,
+  });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { theme } = useTheme();
   const [userPosts, setUserPosts] = useState([]);
@@ -41,7 +47,9 @@ const ProfileScreen = ({ navigation }) => {
           setDocId(userData.id);
           setUser({
             ...userData,
-            birthday: userData.birthday ? new Date(userData.birthday) : new Date(),
+            birthday: userData.birthday
+              ? new Date(userData.birthday)
+              : new Date(),
             profilePicture: userData.profilePicture || defaultPicture,
           });
           fetchUserPosts(currentUser.uid);
@@ -61,8 +69,13 @@ const ProfileScreen = ({ navigation }) => {
 
   const fetchUserPosts = async (userId) => {
     const posts = await fetchPostsByUserId(userId);
-    console.log("User posts: ", posts);
-    setUserPosts(posts);
+    console.log("User posts:", posts);
+    setUserPosts(
+      posts.map((post) => ({
+        ...post,
+        images: (post.images || []).slice(0, 4).map((url) => ({ url })),
+      }))
+    );
   };
 
   const handleSaveChanges = async (field) => {
@@ -78,76 +91,163 @@ const ProfileScreen = ({ navigation }) => {
 
   const handleDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || user.birthday;
-    if (event.type === "set") {
-      setUser({ ...user, birthday: currentDate });
-      setShowDatePicker(false);
+    setUser({ ...user, birthday: currentDate });
+    setShowDatePicker(event.type === "set" ? false : true);
+  };
+
+  const handleProfilePictureChange = async (type) => {
+    let result;
+    if (type === "camera") {
+      result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
     } else {
-      setShowDatePicker(false);
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+    }
+
+    console.log("Image picker result:", result); // Check what the result looks like
+
+    // Check if the operation was not cancelled and assets exist
+    if (!result.cancelled && result.assets && result.assets.length > 0) {
+      const uri = result.assets[0].uri; // Access the URI from the first asset
+      try {
+        console.log("Attempting to update profile picture with URI:", uri);
+        await updateUser(docId, { profilePicture: uri });
+        setUser((previousUser) => ({ ...previousUser, profilePicture: uri }));
+      } catch (error) {
+        console.error("Error updating user profile picture:", error);
+        Alert.alert("Error", "Failed to update profile picture.");
+      }
+    } else {
+      console.log("Operation cancelled or failed, no URI to update.");
     }
   };
 
+  const chooseProfilePicture = () => {
+    Alert.alert(
+      "Change Profile Picture",
+      "Choose the source for your profile picture:",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Take Photo",
+          onPress: () => handleProfilePictureChange("camera"),
+        },
+        {
+          text: "Choose from Gallery",
+          onPress: () => handleProfilePictureChange("gallery"),
+        },
+      ]
+    );
+  };
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
-      <TouchableOpacity onPress={()=>{}}>
-        <Image source={{ uri: user.profilePicture }} style={styles.profilePicture} />
+    <View
+      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
+    >
+      <TouchableOpacity onPress={chooseProfilePicture}>
+        <Image
+          source={{ uri: user.profilePicture }}
+          style={styles.profilePicture}
+        />
       </TouchableOpacity>
 
       <View style={styles.fieldContainer}>
-        <Text style={[styles.label, { color: theme.textColor }]}>Username:</Text>
+        <Text style={[styles.label, { color: theme.textColor }]}>
+          Username:
+        </Text>
         {editMode.username ? (
-          <>
+          <View>
             <TextInput
-              style={[styles.input, { color: theme.textColor, borderColor: theme.textColor }]}
+              style={[
+                styles.input,
+                { color: theme.textColor, borderColor: theme.textColor },
+              ]}
               value={user.username}
               onChangeText={(text) => setUser({ ...user, username: text })}
             />
-            <Button title="Save" onPress={() => handleSaveChanges("username")} color="darkmagenta" />
-          </>
+            <Button
+              title="Save"
+              onPress={() => handleSaveChanges("username")}
+              color="darkmagenta"
+            />
+          </View>
         ) : (
-          <>
-            <Text style={[styles.value, { color: theme.textColor }]}>{user.username}</Text>
-            <Button title="Edit" onPress={() => setEditMode({ ...editMode, username: true })} color="darkmagenta" />
-          </>
+          <View>
+            <Text style={[styles.value, { color: theme.textColor }]}>
+              {user.username}
+            </Text>
+            <Button
+              title="Edit"
+              onPress={() => setEditMode({ ...editMode, username: true })}
+              color="darkmagenta"
+            />
+          </View>
         )}
       </View>
 
       <View style={styles.fieldContainer}>
-        <Text style={[styles.label, { color: theme.textColor }]}>Birthday:</Text>
+        <Text style={[styles.label, { color: theme.textColor }]}>
+          Birthday:
+        </Text>
         {editMode.birthday ? (
-          <>
+          <View>
             <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-              <Text style={[styles.value, { color: theme.textColor }]}>{user.birthday.toDateString()}</Text>
+              <Text style={[styles.value, { color: theme.textColor }]}>
+                {user.birthday.toDateString()}
+              </Text>
             </TouchableOpacity>
             {showDatePicker && (
               <DateTimePicker
                 value={user.birthday}
                 mode="date"
-                display="inline"
+                display="default"
                 onChange={handleDateChange}
               />
             )}
-            <Button title="Save" onPress={() => handleSaveChanges("birthday")} color="darkmagenta" />
-          </>
+            <Button
+              title="Save"
+              onPress={() => handleSaveChanges("birthday")}
+              color="darkmagenta"
+            />
+          </View>
         ) : (
-          <>
-            <Text style={[styles.value, { color: theme.textColor }]}>{user.birthday.toDateString()}</Text>
-            <Button title="Edit" onPress={() => {
-              setEditMode({ ...editMode, birthday: true });
-              setShowDatePicker(true);
-            }} color="darkmagenta" />
-          </>
+          <View>
+            <Text style={[styles.value, { color: theme.textColor }]}>
+              {user.birthday.toDateString()}
+            </Text>
+            <Button
+              title="Edit"
+              onPress={() => {
+                setEditMode({ ...editMode, birthday: true });
+                setShowDatePicker(true);
+              }}
+              color="darkmagenta"
+            />
+          </View>
         )}
       </View>
 
-      <Button title="View Favorites" onPress={() => navigation.navigate("FavoritesScreen")} color="darkmagenta" />
+      <Button
+        title="View Favorites"
+        onPress={() => navigation.navigate("FavoritesScreen")}
+        color="darkmagenta"
+      />
 
       <FlatList
         data={userPosts}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <PostItem
-            post={item}
-          />
+          <View>
+            <PostItem post={item} />
+          </View>
         )}
       />
     </View>
@@ -171,7 +271,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    marginBottom: 4,
   },
   input: {
     height: 40,
@@ -181,7 +280,6 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 16,
-    marginBottom: 4,
   },
 });
 

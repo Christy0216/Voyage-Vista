@@ -13,24 +13,25 @@ import {
 import DropDownPicker from "react-native-dropdown-picker";
 import { useTheme } from "../context/ThemeContext";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { auth } from "../firebase/firebaseSetUp";
 import { createPost, addPostComment } from "../firebase/firebasePostHelper";
+import { mapsApiKey } from "@env";
 
 const AddPostScreen = ({ navigation }) => {
   const [story, setStory] = useState("");
   const [destination, setDestination] = useState("");
-  const [addressType, setAddressType] = useState("city");
-  const [address, setAddress] = useState("");
-  const [coordinates, setCoordinates] = useState({ lat: 0, lon: 0 });
-  const [comment, setComment] = useState("");
+  const [addressType, setAddressType] = useState("street_address");
   const [images, setImages] = useState([]);
+  const [location, setLocation] = useState(null);
+  const [address, setAddress] = useState("");
   const { theme } = useTheme();
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
-    { label: "City", value: "city" },
-    { label: "County", value: "county" },
-    { label: "Street Address", value: "streetAddress" },
+    { label: "stree address", value: "street_address" },
+    { label: "route", value: "route" },
+    { label: "political district", value: "political" },
   ]);
 
   useEffect(() => {
@@ -69,15 +70,42 @@ const AddPostScreen = ({ navigation }) => {
         aspect: [4, 3],
         quality: 1,
       });
-      console.log("Photo capture result:", result); // Log the entire result to inspect its structure
       if (!result.cancelled && result.assets) {
-        console.log("Photo taken:", result.assets[0].uri); // Confirm URI is logged correctly
-        setImages((prev) => [...prev, result.assets[0].uri]); // Update state with the new image URI
-      } else {
-        console.log("Photo capture cancelled or failed:", result);
+        setImages((prev) => [...prev, result.assets[0].uri]);
       }
     } catch (error) {
       console.error("Error taking photo:", error);
+    }
+  };
+
+  const handleGetLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        alert("Permission to access location was denied");
+        return;
+      }
+
+      const loc = await Location.getCurrentPositionAsync({});
+      setLocation(loc.coords);
+      const latlng = `${loc.coords.latitude},${loc.coords.longitude}`;
+
+      const address = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${mapsApiKey}`);
+      const addressJson = await address.json();
+      setAddress(addressJson.results[0].formatted_address);
+    } catch (error) {
+      console.error("Error fetching location:", error);
+    }
+  };
+
+  const updateAddress = async() => {
+    const latlng = `${location.latitude},${location.longitude}`;
+    try
+    {
+      const addressStr = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${mapsApiKey}`).then((response) => response.json()).then((data) => {return data.results[0].formatted_address}); 
+      setAddress(addressStr);
+    } catch (error) {
+      console.log('error fetching address:', error);
     }
   };
 
@@ -87,30 +115,20 @@ const AddPostScreen = ({ navigation }) => {
       story,
       destination,
       addressType,
+      location,
       address,
-      coordinates,
       images,
-      comment,
     };
 
     try {
       const docRefId = await createPost(auth.currentUser.uid, post);
       console.log("Post created with ID:", docRefId);
-      if (comment) {
-        await addPostComment(docRefId, {
-          content: comment,
-          userId: auth.currentUser.uid,
-          timestamp: new Date(),
-        });
-        console.log("Comment added to post successfully");
-      }
       setStory("");
       setDestination("");
       setAddressType("city");
-      setAddress("");
-      setCoordinates({ lat: 0, lon: 0 });
-      setComment("");
+      setLocation(null);
       setImages([]);
+      setAddress("");
       navigation.goBack();
     } catch (error) {
       console.error("Error adding post:", error);
@@ -147,7 +165,7 @@ const AddPostScreen = ({ navigation }) => {
           placeholder="Destination"
         />
         <TextInput
-          style={themedStyles.input}
+          style={[themedStyles.input, themedStyles.storyInput]}
           value={story}
           onChangeText={setStory}
           placeholder="Story"
@@ -160,40 +178,29 @@ const AddPostScreen = ({ navigation }) => {
           setOpen={setOpen}
           setValue={setAddressType}
           setItems={setItems}
+          onChangeValue={() => {
+            if (location) {
+              updateAddress();
+            }
+          }}
           style={themedStyles.picker}
           dropDownContainerStyle={themedStyles.dropdownStyle}
+          listMode="SCROLLVIEW"
         />
-        <TextInput
-          style={themedStyles.input}
-          value={address}
-          onChangeText={setAddress}
-          placeholder="Address"
-        />
-        <TextInput
-          style={themedStyles.input}
-          value={`${coordinates.lat}`}
-          onChangeText={(lat) =>
-            setCoordinates({ ...coordinates, lat: parseFloat(lat) })
-          }
-          placeholder="Latitude"
-          keyboardType="numeric"
-        />
-        <TextInput
-          style={themedStyles.input}
-          value={`${coordinates.lon}`}
-          onChangeText={(lon) =>
-            setCoordinates({ ...coordinates, lon: parseFloat(lon) })
-          }
-          placeholder="Longitude"
-          keyboardType="numeric"
-        />
-        <TextInput
-          style={themedStyles.input}
-          value={comment}
-          onChangeText={setComment}
-          placeholder="Comment"
-          multiline
-        />
+        <Text style={themedStyles.addressText}>{address}</Text>
+        {location && (
+          <View style={themedStyles.mapContainer}>
+            <Image
+              source={{
+                uri: `https://maps.googleapis.com/maps/api/staticmap?center=${location.latitude},${location.longitude}&zoom=15&size=600x300&markers=color:red%7Clabel:A%7C${location.latitude},${location.longitude}&key=${mapsApiKey}`,
+              }}
+              style={themedStyles.map}
+            />
+          </View>
+        )}
+        <TouchableOpacity onPress={handleGetLocation} style={themedStyles.button}>
+          <Text style={themedStyles.buttonText}>Get My Location</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={handleSubmit} style={themedStyles.button}>
           <Text style={themedStyles.buttonText}>Submit Post</Text>
         </TouchableOpacity>
@@ -227,6 +234,10 @@ const styles = (theme) =>
       borderRadius: 5,
       backgroundColor: theme.inputBackgroundColor,
     },
+    storyInput: {
+      height: 150, // Adjust the height as needed
+      textAlignVertical: "top", // Ensures the text starts at the top of the input
+    },
     picker: {
       borderWidth: 1,
       borderColor: "gray",
@@ -238,6 +249,11 @@ const styles = (theme) =>
     dropdownStyle: {
       backgroundColor: theme.backgroundColor,
     },
+    addressText: {
+      marginVertical: 10,
+      fontSize: 16,
+      color: theme.textColor,
+    },
     button: {
       backgroundColor: theme.buttonColor,
       padding: 10,
@@ -247,6 +263,14 @@ const styles = (theme) =>
     },
     buttonText: {
       color: theme.buttonTextColor,
+    },
+    mapContainer: {
+      marginBottom: 10,
+    },
+    map: {
+      width: "100%",
+      height: 200,
+      borderRadius: 10,
     },
   });
 

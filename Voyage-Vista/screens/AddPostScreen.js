@@ -100,8 +100,13 @@ const AddPostScreen = ({ navigation }) => {
 
   const updateAddress = async() => {
     const latlng = `${location.latitude},${location.longitude}`;
-    const addressStr = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${mapsApiKey}`).then((response) => response.json()).then((data) => {return data.results[0].formatted_address});
-    setAddress(addressStr);
+    try
+    {
+      const addressStr = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${mapsApiKey}`).then((response) => response.json()).then((data) => {return data.results[0].formatted_address}); 
+      setAddress(addressStr);
+    } catch (error) {
+      console.log('error fetching address:', error);
+    }
   };
 
   const handleSubmit = async () => {

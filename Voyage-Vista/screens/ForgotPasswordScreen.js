@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../firebase/firebaseSetUp";
 import { useTheme } from '../context/ThemeContext';
+import ThemedButton from "../components/ThemedButton";
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -35,7 +36,7 @@ export default function ForgotPasswordScreen({ navigation }) {
         autoCapitalize="none"
         keyboardType="email-address"
       />
-      <Button title="Reset Password" onPress={resetPasswordHandler} color={theme.buttonColor} />
+      <ThemedButton title="Reset Password" onPress={resetPasswordHandler} />
     </View>
   );
 }

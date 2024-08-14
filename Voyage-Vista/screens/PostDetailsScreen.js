@@ -42,6 +42,8 @@ import {
   collection,
   getDocs,
 } from "firebase/firestore";
+import ThemedButton from "../components/ThemedButton";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 const PostDetailsScreen = ({ route, navigation }) => {
   const { postId } = route.params;
@@ -66,12 +68,22 @@ const PostDetailsScreen = ({ route, navigation }) => {
         setLiked(details.post.likedBy?.includes(currentUser.uid));
         setFavorited(details.post.favoritedBy?.includes(currentUser.uid));
         fetchComments(postId);
+        navigation.setOptions({
+          headerRight: () =>
+            details.post.uid === auth.currentUser.uid ? (
+              <TouchableOpacity
+                onPress={handleDelete}
+                style={{ marginRight: 15 }}
+              >
+                <FontAwesome name="trash" size={30} color={theme.buttonColor} />
+              </TouchableOpacity>
+            ) : null,
+        });
       }
       setLoading(false);
     };
-
     fetchDetails();
-  }, [postId]);
+  }, [postId, navigation]);
 
   const fetchComments = async (postId) => {
     const commentsRef = collection(db, "posts", postId, "comments");
@@ -257,29 +269,8 @@ const PostDetailsScreen = ({ route, navigation }) => {
             ))}
         </ScrollView>
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            onPress={toggleLike}
-            style={[styles.button, liked && styles.buttonActive]}
-          >
-            <Text style={[styles.buttonText, liked && styles.buttonTextActive]}>
-              Like
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={toggleFavorite}
-            style={[styles.button, favorited && styles.buttonActive]}
-          >
-            <Text
-              style={[styles.buttonText, favorited && styles.buttonTextActive]}
-            >
-              Favorite
-            </Text>
-          </TouchableOpacity>
-          {currentUser && postDetails.uid === currentUser.uid && (
-            <TouchableOpacity onPress={handleDelete} style={[styles.button]}>
-              <Text style={styles.buttonText}>Delete</Text>
-            </TouchableOpacity>
-          )}
+          <ThemedButton title="Favorite" onPress={toggleFavorite} />
+          <ThemedButton title="Like" onPress={toggleLike} />
         </View>
         <View style={styles.commentsContainer}>
           <Text style={[styles.label, { color: theme.textColor }]}>
@@ -309,9 +300,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
           placeholder="Add a comment..."
           placeholderTextColor={theme.placeholderTextColor}
         />
-        <TouchableOpacity onPress={handleAddComment} style={styles.addButton}>
-          <Text style={styles.addButtonText}>Add</Text>
-        </TouchableOpacity>
+        <ThemedButton title="Add" onPress={handleAddComment} />
       </View>
       <View style={{ height: 100 }} />
     </KeyboardAvoidingView>
@@ -381,6 +370,7 @@ const styles = StyleSheet.create({
   },
   commentsContainer: {
     marginTop: 20,
+    paddingBottom: 100,
   },
   label: {
     fontSize: 16,
@@ -396,13 +386,13 @@ const styles = StyleSheet.create({
   },
   commentInputContainer: {
     flexDirection: "row",
-    padding: 10,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: "#ccc",
   },
   commentInput: {
     flex: 1,
-    padding: 10,
+    paddingLeft: 10,
     borderRadius: 5,
     borderWidth: 1,
     borderColor: "#ccc",

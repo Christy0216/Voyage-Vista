@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, Alert, StyleSheet, TouchableOpacity } fr
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebaseSetUp";
 import { useTheme } from '../context/ThemeContext';
+import ThemedButton from '../components/ThemedButton';
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState("");
@@ -59,15 +60,9 @@ export default function Login({ navigation }) {
         value={password}
         onChangeText={setPassword}
       />
-      <Button title="Login" onPress={loginHandler} color={theme.buttonColor} />
-      <View style={styles.space} />
-      
-      <TouchableOpacity onPress={forgotPasswordHandler}>
-        <Text style={{ color: theme.linkColor }}>Forgot Password?</Text>
-      </TouchableOpacity>
-
-      <View style={styles.space} />
-      <Button title="Signup" onPress={signupHandler} color={theme.buttonColor} />
+      <ThemedButton title="Login" onPress={loginHandler} />
+      <ThemedButton title="Forgot Password" onPress={forgotPasswordHandler} />
+      <ThemedButton title="Signup" onPress={signupHandler} />
     </View>
   );
 }

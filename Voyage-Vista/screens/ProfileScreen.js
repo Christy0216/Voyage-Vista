@@ -73,7 +73,7 @@ const ProfileScreen = ({ navigation }) => {
     setUserPosts(
       posts.map((post) => ({
         ...post,
-        images: (post.images || []).slice(0, 4).map((url) => ({ url })),
+        photos: (post.images || []).slice(0, 4).map((url) => ({ url })),
       }))
     );
   };

@@ -1,16 +1,19 @@
 export const themes = {
-  light: {
-    backgroundColor: "white",
-    textColor: "black",
-    buttonColor: "#007bff",
-    buttonTextColor: "#fff",
-    inputBackgroundColor: "#fff",
-  },
-  dark: {
-    backgroundColor: "grey",
-    textColor: "white",
-    buttonColor: "#555",
-    buttonTextColor: "#fff",
-    inputBackgroundColor: "#666",
-  },
-};
+    light: {
+      backgroundColor: "#f0f8ff", // Light sky blue background
+      textColor: "#333", // Darker text for better readability
+      buttonColor: "#87CEEB", // Sky blue buttons
+      buttonTextColor: "#fff", // White text on buttons
+      inputBackgroundColor: "#fff", // White input fields for clarity
+      placeholderTextColor: "#a9a9a9", // Dark gray for placeholders
+    },
+    dark: {
+      backgroundColor: "#2F4F4F", // Dark slate gray background
+      textColor: "#dcdcdc", // Light gray text for contrast
+      buttonColor: "#4682B4", // Steel blue buttons
+      buttonTextColor: "#fff", // White text on buttons
+      inputBackgroundColor: "#555", // Slightly lighter gray for inputs
+      placeholderTextColor: "#dcdcdc", // Light gray for placeholders
+    },
+  };
+  

@@ -68,6 +68,7 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   const fetchUserPosts = async (userId) => {
+    try{
     const posts = await fetchPostsByUserId(userId);
     console.log("User posts:", posts);
     setUserPosts(
@@ -75,7 +76,10 @@ const ProfileScreen = ({ navigation }) => {
         ...post,
         photos: (post.images || []).slice(0, 4).map((url) => ({ url })),
       }))
-    );
+    );}
+    catch (error) {
+      console.log('Error getting user posts: ', error);
+    }
   };
 
   const handleSaveChanges = async (field) => {

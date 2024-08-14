@@ -93,6 +93,7 @@ export const getPostWithUserDetails = async (postId) => {
 
   // Fetch all posts
   export const fetchPostsByUserId = async (userId) => {
+    try{
     const postsRef = collection(db, 'posts');
     const q = query(postsRef, where('uid', '==', userId));
     const snapshot = await getDocs(q);
@@ -100,6 +101,11 @@ export const getPostWithUserDetails = async (postId) => {
       id: doc.id,
       ...doc.data()
     }));
+  }
+  catch (error) {
+    console.log('Error getting posts: ', error);
+    return null;
+  }
   };
 
 // Update a post

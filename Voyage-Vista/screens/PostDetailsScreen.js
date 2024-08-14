@@ -82,17 +82,26 @@ const PostDetailsScreen = ({ route, navigation }) => {
       }
       setLoading(false);
     };
+    try{
     fetchDetails();
+    }
+    catch (error) {
+      console.log('Error fetching post details: ', error);
+    }
   }, [postId, navigation]);
 
   const fetchComments = async (postId) => {
+    try{
     const commentsRef = collection(db, "posts", postId, "comments");
     const commentsSnapshot = await getDocs(commentsRef);
     const commentsList = commentsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
-    setComments(commentsList);
+    setComments(commentsList);}
+    catch (error) {
+      console.log('Error fetching comments: ', error);
+    }
   };
 
   const handleAddComment = async () => {

@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  FlatList,
 } from "react-native";
 import { useTheme } from "../context/ThemeContext"; // Import the theme context
 import { defaultPicture } from "../reusables/objects"; // Import the default picture
@@ -62,12 +63,13 @@ const PostDetailsScreen = ({ route, navigation }) => {
         const uid = auth.currentUser.uid;
         const user = await getUser(uid);
         setUserDoc(user);
-        setLiked(details.post.likedBy?.includes(uid));
-        setFavorited(details.post.favoritedBy?.includes(uid));
+        setLiked(details.post.likedBy?.includes(currentUser.uid));
+        setFavorited(details.post.favoritedBy?.includes(currentUser.uid));
         fetchComments(postId);
       }
       setLoading(false);
     };
+
     fetchDetails();
   }, [postId]);
 
@@ -84,7 +86,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
   const handleAddComment = async () => {
     if (comment.trim()) {
       const newComment = {
-        userId: auth.currentUser.uid,
+        userId: currentUser.uid,
         content: comment.trim(),
         timestamp: new Date(),
       };
@@ -157,9 +159,8 @@ const PostDetailsScreen = ({ route, navigation }) => {
         {
           text: "Delete",
           onPress: async () => {
-            const userDoc = await getUser(currentUser.uid);
-            await deletePost(userDoc.id, postId);
-            navigation.goBack(); // Navigate back or refresh the list
+            await deletePost(currentUser.uid, postId);
+            navigation.goBack();
           },
         },
       ]);
@@ -169,7 +170,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
   const handleLongPressComment = (comment) => {
     if (
       currentUser.uid === comment.userId ||
-      currentUser.uid === postDetails.userId
+      currentUser.uid === postDetails.uid
     ) {
       Alert.alert(
         "Delete Comment?",
@@ -238,27 +239,23 @@ const PostDetailsScreen = ({ route, navigation }) => {
             {postDetails.story}
           </Text>
         )}
-        <Text style={[styles.text, { color: theme.textColor }]}>
-          Address Type: {postDetails.addressType}
-        </Text>
-        <Text style={[styles.text, { color: theme.textColor }]}>
-          Likes: {postDetails.likesCount || 0}
-        </Text>
-        <Text style={[styles.text, { color: theme.textColor }]}>
-          Comments: {postDetails.commentsCount || 0}
-        </Text>
-        <Text style={[styles.text, { color: theme.textColor }]}>
-          Favorites: {postDetails.favoritesCount || 0}
-        </Text>
-        {postDetails.photos &&
-          postDetails.photos.length > 0 &&
-          postDetails.photos.map((photo, index) => (
-            <Image
-              key={index}
-              source={{ uri: photo.url }}
-              style={styles.postImage}
-            />
-          ))}
+        <ScrollView
+          horizontal={false}
+          contentContainerStyle={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "left",
+          }}
+        >
+          {postDetails.images &&
+            postDetails.images.map((image, index) => (
+              <Image
+                key={index}
+                source={{ uri: image }}
+                style={styles.postImage}
+              />
+            ))}
+        </ScrollView>
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
             onPress={toggleLike}
@@ -355,10 +352,12 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   postImage: {
-    width: "100%",
+    width: "30%",
     height: 200,
     resizeMode: "cover",
     marginVertical: 10,
+    marginRight: 2,
+    marginLeft: 2,
   },
   buttonsContainer: {
     flexDirection: "row",

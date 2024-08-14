@@ -22,12 +22,12 @@ const PostItem = ({ post }) => {
                     <Text style={styles.count}>Favorites: {post.favoritesCount || 0}</Text>
                     <Text style={styles.count}>Likes: {post.likesCount || 0}</Text>
                 </View>
-                {post.photos && post.photos.length > 0 && (
+                {post.images && post.images.length > 0 && (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosContainer}>
-                        {post.photos.slice(0, 4).map((photo, index) => (
+                        {post.images.slice(0, 4).map((image, index) => (
                             <Image
                                 key={index}
-                                source={{ uri: photo.url }}
+                                source={{ uri: image }}
                                 style={styles.photo}
                             />
                         ))}

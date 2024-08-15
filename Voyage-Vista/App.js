@@ -13,12 +13,11 @@ import SettingScreen from "./screens/SettingScreen";
 import PostDetailsScreen from "./screens/PostDetailsScreen";
 import FavoritesScreen from "./screens/FavoritesScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider } from "./context/ThemeContext";
 import WeatherDetailsScreen from "./screens/WeatherDetailsScreen";
 import { auth } from "./firebase/firebaseSetUp";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
-import Octicons from '@expo/vector-icons/Octicons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Stack = createNativeStackNavigator();
@@ -36,6 +35,7 @@ function AuthStack() {
 
 function AppTabs() {
   return (
+
     <Tab.Navigator screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;

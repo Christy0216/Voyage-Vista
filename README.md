@@ -93,7 +93,7 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
 
 ## Screenshots
 
-<img src="./Voyage-Vista//res/main_screen_screenshot1.PNG" alt="Main Screen" width="400" />
+<img src="./Voyage-Vista//res/main_screen_screenshot1.png" alt="Main Screen" width="400" />
 
 _Caption: Updated Main screen showing the list of users' posts._
 

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "StickerSmash",
-    "slug": "StickerSmash",
+    "name": "voyage-vista",
+    "slug": "voyage-vista",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,13 +12,25 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "voyage-vista needs access to your camera to take a happy shot of your adventure!",
+        "NSPhotoLibraryUsageDescription": "voyage-vista needs access to your gallery for collecting your precious memory!",
+        "NSLocationWhenInUseUsageDescription": "voyage-vista needs access to your location to enlighten your friends!"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -27,8 +39,8 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "The app needs access to your camera.",
-          "photoPermission": "The app needs access to your gallery."
+          "cameraPermission": "voyage-vista needs access to your camera to take a happy shot of your adventure!",
+          "photoPermission":  "voyage-vista needs access to your gallery for collecting your precious memory!"
         }
       ]
     ]

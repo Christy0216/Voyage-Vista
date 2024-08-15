@@ -10,10 +10,10 @@ import {
   Image,
   FlatList,
   Alert,
+  ScrollView,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import MapView, { Marker } from "react-native-maps";
-import * as Location from "expo-location";
 import * as Geocoding from "expo-location";
 import { useTheme } from "../context/ThemeContext";
 import * as ImagePicker from "expo-image-picker";

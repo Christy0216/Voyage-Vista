@@ -225,3 +225,27 @@ export const decrementLikesCount = async (postId) => {
     console.log('Error decrementing likes count: ', error);
   }
 };
+
+export const fetchPostsInRegion = async (region) => {
+    // First query by latitude
+    const postsRef = collection(db, 'posts');
+    const qLatitude = query(
+        postsRef,
+        where('location.latitude', '>=', region.latitude - region.latitudeDelta / 2),
+        where('location.latitude', '<=', region.latitude + region.latitudeDelta / 2)
+    );
+
+    const snapshotLatitude = await getDocs(qLatitude);
+    const postsByLatitude = snapshotLatitude.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+
+    // Then filter by longitude in the application
+    const postsInRegion = postsByLatitude.filter(post =>
+        post.location.longitude >= (region.longitude - region.longitudeDelta / 2) &&
+        post.location.longitude <= (region.longitude + region.longitudeDelta / 2)
+    );
+
+    return postsInRegion;
+};

@@ -181,7 +181,6 @@ const ProfileScreen = ({ navigation }) => {
             <ThemedButton
               title="Save"
               onPress={() => handleSaveChanges("username")}
-              color="darkmagenta"
             />
           </View>
         ) : (
@@ -192,7 +191,6 @@ const ProfileScreen = ({ navigation }) => {
             <ThemedButton
               title="Edit"
               onPress={() => setEditMode({ ...editMode, username: true })}
-              color="darkmagenta"
             />
           </View>
         )}
@@ -220,7 +218,6 @@ const ProfileScreen = ({ navigation }) => {
             <ThemedButton
               title="Save"
               onPress={() => handleSaveChanges("birthday")}
-              color="darkmagenta"
             />
           </View>
         ) : (
@@ -234,17 +231,16 @@ const ProfileScreen = ({ navigation }) => {
                 setEditMode({ ...editMode, birthday: true });
                 setShowDatePicker(true);
               }}
-              color="darkmagenta"
             />
           </View>
         )}
       </View>
-
+      <View style={styles.buttonContainer}>
       <ThemedButton
         title="View Favorites"
         onPress={() => navigation.navigate("FavoritesScreen")}
       />
-
+ </View>
       <FlatList
         data={userPosts}
         keyExtractor={(item) => item.id.toString()}
@@ -289,6 +285,10 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 16,
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    marginVertical: 20, 
   },
 });
 

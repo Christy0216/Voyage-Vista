@@ -17,11 +17,11 @@ const ThemedButton = ({ title, onPress }) => {
 
 const styles = StyleSheet.create({
   button: {
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 5,
     alignItems: "center",
     marginVertical: 10,
-    width: "30%",
     alignSelf: "center",
   },
   text: {

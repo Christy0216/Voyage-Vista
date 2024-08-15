@@ -1,22 +1,24 @@
-import React, { useState, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import MapView, { Marker, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native'; // Import for navigation
+import { fetchPostsInRegion } from '../firebase/firebasePostHelper';
 
 export const Map = () => {
     const [location, setLocation] = useState(null);
+    const [visiblePosts, setVisiblePosts] = useState([]);
     const mapRef = useRef(null);
+    const navigation = useNavigation(); // Initialize navigation
 
     const centerMapOnUser = async () => {
-        // Request permission to access location
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
             console.log('Permission to access location was denied');
             return;
         }
 
-        // Get the current location of the user
         let loc = await Location.getCurrentPositionAsync({});
         const newRegion = {
             latitude: loc.coords.latitude,
@@ -30,11 +32,34 @@ export const Map = () => {
             longitude: loc.coords.longitude
         });
 
-        // Animate map to the new region
         if (mapRef.current) {
-            mapRef.current.animateToRegion(newRegion, 1000); // 1000ms animation duration
+            mapRef.current.animateToRegion(newRegion, 1000);
         }
     };
+
+    const onRegionChangeComplete = async (region) => {
+        try {
+            const posts = await fetchPostsInRegion(region);
+            setVisiblePosts(posts);
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+        }
+    };
+
+    useEffect(() => {
+        // Initialize the visible posts based on the initial region
+        if (mapRef.current) {
+            mapRef.current.getMapBoundaries().then(bounds => {
+                const initialRegion = {
+                    latitude: (bounds.northEast.latitude + bounds.southWest.latitude) / 2,
+                    longitude: (bounds.northEast.longitude + bounds.southWest.longitude) / 2,
+                    latitudeDelta: bounds.northEast.latitude - bounds.southWest.latitude,
+                    longitudeDelta: bounds.northEast.longitude - bounds.southWest.longitude,
+                };
+                onRegionChangeComplete(initialRegion);
+            });
+        }
+    }, []);
 
     return (
         <View style={{ flex: 1 }}>
@@ -47,8 +72,29 @@ export const Map = () => {
                     latitudeDelta: 0.0922,
                     longitudeDelta: 0.0421,
                 }}
+                onRegionChangeComplete={onRegionChangeComplete}
             >
                 {location && <Marker coordinate={location} />}
+                {visiblePosts.map((post, index) => (
+                    <Marker
+                        key={index}
+                        coordinate={{
+                            latitude: post.location.latitude,
+                            longitude: post.location.longitude,
+                        }}
+                        title={post.story} // Optional title
+                        pinColor="orange" // Set the marker color to orange
+                    >
+                        <Callout
+                            onPress={() => navigation.navigate('PostDetailsScreen', { postId: post.id })}
+                        >
+                            <View style={styles.calloutView}>
+                                <Text style={styles.calloutText}>{post.story}</Text>
+                                <Text style={styles.linkText}>View Details</Text>
+                            </View>
+                        </Callout>
+                    </Marker>
+                ))}
             </MapView>
             <TouchableOpacity
                 style={styles.locateButton}
@@ -70,5 +116,19 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         justifyContent: 'center',
         alignItems: 'center',
-    }
+    },
+    calloutView: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: 5,
+    },
+    calloutText: {
+        fontSize: 14,
+        marginBottom: 5,
+    },
+    linkText: {
+        color: 'blue',
+        textDecorationLine: 'underline',
+        fontSize: 14,
+    },
 });

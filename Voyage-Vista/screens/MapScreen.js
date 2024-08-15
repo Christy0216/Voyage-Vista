@@ -4,6 +4,7 @@ import CitySelectionModal from '../modal/CitySelectionModal';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import { Map } from '../components/Map';
+import { fetchPostsInRegion } from '../firebase/firebasePostHelper';
 
 const MapScreen = ({ navigation }) => {
   const [city, setCity] = useState('Vancouver');

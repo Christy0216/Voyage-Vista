@@ -34,10 +34,18 @@ const AddPostScreen = ({ navigation }) => {
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
-    { label: "stree address", value: "street_address" },
+    { label: "street address", value: "street_address" },
     { label: "route", value: "route" },
     { label: "political district", value: "political" },
   ]);
+  const [response, requestPermission] = Location.useForegroundPermissions();
+  async function VerifyPermissions() {
+    if (response.granted) {
+      return true;
+    }
+    const permissionResponse = await requestPermission();
+    return permissionResponse.granted;
+  }
 
   useEffect(() => {
     const getPermissions = async () => {
@@ -158,32 +166,39 @@ const AddPostScreen = ({ navigation }) => {
 
   const handleGetLocation = async () => {
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        alert("Permission to access location was denied");
+      const permission = await VerifyPermissions();
+      if (!permission) {
+        Alert.alert("permission not granted");
         return;
       }
-
       const loc = await Location.getCurrentPositionAsync({});
       setLocation(loc.coords);
       const latlng = `${loc.coords.latitude},${loc.coords.longitude}`;
 
-      const address = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${mapsApiKey}`);
+      const address = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${mapsApiKey}`
+      );
       const addressJson = await address.json();
+      
       setAddress(addressJson.results[0].formatted_address);
     } catch (error) {
       console.error("Error fetching location:", error);
     }
   };
 
-  const updateAddress = async() => {
+  const updateAddress = async () => {
     const latlng = `${location.latitude},${location.longitude}`;
-    try
-    {
-      const addressStr = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${mapsApiKey}`).then((response) => response.json()).then((data) => {return data.results[0].formatted_address}); 
+    try {
+      const addressStr = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${mapsApiKey}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          return data.results[0].formatted_address;
+        });
       setAddress(addressStr);
     } catch (error) {
-      console.log('error fetching address:', error);
+      console.log("error fetching address:", error);
     }
   };
 
@@ -387,7 +402,10 @@ const AddPostScreen = ({ navigation }) => {
             />
           </View>
         )}
-        <TouchableOpacity onPress={handleGetLocation} style={themedStyles.button}>
+        <TouchableOpacity
+          onPress={handleGetLocation}
+          style={themedStyles.button}
+        >
           <Text style={themedStyles.buttonText}>Get My Location</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleSubmit} style={themedStyles.button}>

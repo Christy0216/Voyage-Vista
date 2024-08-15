@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { themes } from '../styles/themes';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebaseSetUp';
+import ThemedButton from '../components/ThemedButton';
 
 const SettingsScreen = ({ navigation }) => {
   const { theme, toggleTheme } = useTheme();
@@ -26,7 +27,7 @@ const SettingsScreen = ({ navigation }) => {
         />
       </View>
       <View style={styles.signOutButton}>
-        <Button title="Sign Out" onPress={handleSignOut} color="darkmagenta" />
+        <ThemedButton title="Sign Out" onPress={handleSignOut} />
       </View>
     </View>
   );

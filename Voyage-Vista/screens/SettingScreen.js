@@ -6,6 +6,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebaseSetUp";
 import ThemedButton from "../components/ThemedButton";
 
+
 const SettingsScreen = ({ navigation }) => {
   const { theme, toggleTheme } = useTheme();
 

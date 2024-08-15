@@ -35,29 +35,28 @@ function AuthStack() {
 
 function AppTabs() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
+
+    <Tab.Navigator screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
-          if (route.name === "Main") {
-            iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "Map") {
-            iconName = focused ? "map" : "map-outline";
-          } else if (route.name === "AddPost") {
-            iconName = focused ? "add-circle" : "add-circle-outline";
-          } else if (route.name === "Profile") {
-            iconName = focused ? "person" : "person-outline";
-          } else if (route.name === "Setting") {
-            iconName = focused ? "settings" : "settings-outline";
+          if (route.name === 'Main') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Map') {
+            iconName = focused ? 'map' : 'map-outline';
+          } else if (route.name === 'AddPost') {
+            iconName = focused ? 'add-circle' : 'add-circle-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'Setting') {
+            iconName = focused ? 'settings' : 'settings-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: "skyblue",
-        tabBarInactiveTintColor: "gray",
-      })}
-    >
+        tabBarActiveTintColor: 'skyblue',
+        tabBarInactiveTintColor: 'gray',
+      })}>
       <Tab.Screen name="Main" component={MainScreen} />
       <Tab.Screen name="Map" component={MapScreen} />
       <Tab.Screen name="AddPost" component={AddPostScreen} />

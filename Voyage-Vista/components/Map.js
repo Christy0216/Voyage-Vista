@@ -3,37 +3,41 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native'; // Import for navigation
+import { useNavigation } from '@react-navigation/native';
 import { fetchPostsInRegion } from '../firebase/firebasePostHelper';
 
-export const Map = () => {
-    const [location, setLocation] = useState(null);
+export const Map = ({ location }) => {
+    const [userLocation, setUserLocation] = useState(null);
     const [visiblePosts, setVisiblePosts] = useState([]);
     const mapRef = useRef(null);
-    const navigation = useNavigation(); // Initialize navigation
+    const navigation = useNavigation();
 
     const centerMapOnUser = async () => {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-            console.log('Permission to access location was denied');
-            return;
-        }
+        try {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                console.log('Permission to access location was denied');
+                return;
+            }
 
-        let loc = await Location.getCurrentPositionAsync({});
-        const newRegion = {
-            latitude: loc.coords.latitude,
-            longitude: loc.coords.longitude,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-        };
+            let loc = await Location.getCurrentPositionAsync({});
+            const newRegion = {
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+            };
 
-        setLocation({
-            latitude: loc.coords.latitude,
-            longitude: loc.coords.longitude
-        });
+            setUserLocation({
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude
+            });
 
-        if (mapRef.current) {
-            mapRef.current.animateToRegion(newRegion, 1000);
+            if (mapRef.current) {
+                mapRef.current.animateToRegion(newRegion, 1000);
+            }
+        } catch (error) {
+            console.error('Error getting user location:', error);
         }
     };
 
@@ -47,19 +51,22 @@ export const Map = () => {
     };
 
     useEffect(() => {
-        // Initialize the visible posts based on the initial region
-        if (mapRef.current) {
-            mapRef.current.getMapBoundaries().then(bounds => {
-                const initialRegion = {
-                    latitude: (bounds.northEast.latitude + bounds.southWest.latitude) / 2,
-                    longitude: (bounds.northEast.longitude + bounds.southWest.longitude) / 2,
-                    latitudeDelta: bounds.northEast.latitude - bounds.southWest.latitude,
-                    longitudeDelta: bounds.northEast.longitude - bounds.southWest.longitude,
-                };
-                onRegionChangeComplete(initialRegion);
-            });
-        }
+        // Automatically center the map on the user's location when the component mounts
+        centerMapOnUser();
     }, []);
+
+    useEffect(() => {
+        // Update the map region when the location prop changes
+        if (location && mapRef.current) {
+            const newRegion = {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+            };
+            mapRef.current.animateToRegion(newRegion, 1000);
+        }
+    }, [location]);
 
     return (
         <View style={{ flex: 1 }}>
@@ -67,14 +74,14 @@ export const Map = () => {
                 ref={mapRef}
                 style={{ flex: 1 }}
                 initialRegion={{
-                    latitude: 37.78825,
-                    longitude: -122.4324,
+                    latitude: location ? location.latitude : 37.78825,
+                    longitude: location ? location.longitude : -122.4324,
                     latitudeDelta: 0.0922,
                     longitudeDelta: 0.0421,
                 }}
                 onRegionChangeComplete={onRegionChangeComplete}
             >
-                {location && <Marker coordinate={location} />}
+                {userLocation && <Marker coordinate={userLocation} />}
                 {visiblePosts.map((post, index) => (
                     <Marker
                         key={index}
@@ -82,8 +89,8 @@ export const Map = () => {
                             latitude: post.location.latitude,
                             longitude: post.location.longitude,
                         }}
-                        title={post.story} // Optional title
-                        pinColor="orange" // Set the marker color to orange
+                        title={post.story}
+                        pinColor="orange"
                     >
                         <Callout
                             onPress={() => navigation.navigate('PostDetailsScreen', { postId: post.id })}

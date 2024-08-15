@@ -1,9 +1,11 @@
-import React from 'react';
-import { View, Text, Switch, Button, StyleSheet } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
-import { themes } from '../styles/themes';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase/firebaseSetUp';
+import React from "react";
+import { View, Text, Switch, Button, StyleSheet } from "react-native";
+import { useTheme } from "../context/ThemeContext";
+import { themes } from "../styles/themes";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase/firebaseSetUp";
+import ThemedButton from "../components/ThemedButton";
+
 
 const SettingsScreen = ({ navigation }) => {
   const { theme, toggleTheme } = useTheme();
@@ -12,21 +14,22 @@ const SettingsScreen = ({ navigation }) => {
     try {
       await signOut(auth);
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
     }
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
+    >
       <View style={styles.content}>
-        <Text style={[styles.text, { color: theme.textColor }]}>Toggle Theme</Text>
-        <Switch
-          onValueChange={toggleTheme}
-          value={theme === themes.dark}
-        />
+        <Text style={[styles.text, { color: theme.textColor }]}>
+          Toggle Theme
+        </Text>
+        <Switch onValueChange={toggleTheme} value={theme === themes.dark} />
       </View>
       <View style={styles.signOutButton}>
-        <Button title="Sign Out" onPress={handleSignOut} color="darkmagenta" />
+        <ThemedButton title="Sign Out" onPress={handleSignOut} />
       </View>
     </View>
   );
@@ -39,8 +42,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   text: {
     fontSize: 18,
@@ -48,6 +51,7 @@ const styles = StyleSheet.create({
   },
   signOutButton: {
     paddingVertical: 16,
+    alignItems: "center",
   },
 });
 

@@ -15,12 +15,17 @@ const MainScreen = () => {
 
   useEffect(() => {
     const fetchProfilePhoto = async () => {
+      try{
       if (auth.currentUser) {
         const userData = await getUser(auth.currentUser.uid);
         if (userData) {
           setProfilePhoto(userData.profilePicture || defaultPicture);
         }
       }
+    }
+    catch (error) {
+      console.log('Error getting profile photo: ', error);
+    }
     };
 
     fetchProfilePhoto();

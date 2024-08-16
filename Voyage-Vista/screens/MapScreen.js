@@ -17,52 +17,65 @@ const MapScreen = ({ navigation }) => {
   const { theme } = useTheme();
 
   useEffect(() => {
-    const fetchUserLocation = async () => {
-      try {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          console.log("Permission to access location was denied");
-          return;
-        }
-
-        let loc = await Location.getCurrentPositionAsync({});
-        const { latitude, longitude } = loc.coords;
-        setLocation({ latitude, longitude });
-
-        console.log("User location fetched:", { latitude, longitude });
-
-        // Reverse geocoding to get the city name
-        const response = await axios.get(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${MAP_API_KEY}`
-        );
-
-        if (response.data.results.length > 0) {
-          const addressComponents = response.data.results[0].address_components;
-          const cityComponent = addressComponents.find((component) =>
-            component.types.includes("locality")
-          );
-
-          if (cityComponent) {
-            const userCity = cityComponent.long_name;
-            const placeId = await getPlaceIdFromCityName(userCity);
-            if (placeId) {
-              console.log("User city and place ID found:", { userCity, placeId });
-              setCityName(userCity); // Set city name
-              setCityPlaceId(placeId); // Set place ID
-              setCities([{ label: userCity, value: placeId }]); // Use placeId as value
-              fetchCityCoordinates(placeId); // Fetch initial coordinates for user's city
-            }
-          } else {
-            console.log("City not found in reverse geocoding response");
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user location:", error);
-      }
-    };
-
     fetchUserLocation();
   }, []);
+
+  const fetchUserLocation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission to access location was denied");
+        return;
+      }
+
+      let loc = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = loc.coords;
+      setLocation({ latitude, longitude });
+
+      console.log("User location fetched:", { latitude, longitude });
+
+      // Reverse geocoding to get the city name
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${MAP_API_KEY}`
+      );
+
+      if (response.data.results.length > 0) {
+        const addressComponents = response.data.results[0].address_components;
+        const cityComponent = addressComponents.find((component) =>
+          component.types.includes("locality")
+        );
+
+        if (cityComponent) {
+          const userCity = cityComponent.long_name;
+          const placeId = await getPlaceIdFromCityName(userCity);
+          if (placeId) {
+            console.log("User city and place ID found:", { userCity, placeId });
+            setCityName(userCity); // Set city name
+            setCityPlaceId(placeId); // Set place ID
+
+            // Ensure "Use My Location" is added only once
+            setCities((prevCities) => {
+              const useMyLocationOption = { label: "Use My Location", value: "use_my_location" };
+              const filteredCities = prevCities.filter(
+                (city) => city.value !== placeId && city.value !== "use_my_location"
+              );
+              return [
+                useMyLocationOption,
+                ...filteredCities,
+                { label: userCity, value: placeId },
+              ];
+            });
+
+            fetchCityCoordinates(placeId); // Fetch initial coordinates for user's city
+          }
+        } else {
+          console.log("City not found in reverse geocoding response");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user location:", error);
+    }
+  };
 
   const fetchCities = async (query) => {
     if (query.length > 2) {
@@ -76,83 +89,104 @@ const MapScreen = ({ navigation }) => {
           const citySuggestions = response.data.predictions.map(
             (prediction) => ({
               label: prediction.description,
-              value: prediction.place_id, // Using place_id correctly
+              value: prediction.place_id, // Using place_id correctly as the unique key
             })
           );
-          console.log("Cities:", citySuggestions); // This should log the city suggestions
-          setCities(citySuggestions);
+          console.log("Cities:", citySuggestions);
+
+          // Ensure "Use My Location" is added only once
+          setCities((prevCities) => {
+            const useMyLocationOption = { label: "Use My Location", value: "use_my_location" };
+            const existingCities = new Set(prevCities.map(city => city.value));
+            const uniqueCitySuggestions = citySuggestions.filter(
+              (city) => !existingCities.has(city.value)
+            );
+            return [
+              useMyLocationOption,
+              ...uniqueCitySuggestions,
+            ];
+          });
         } else {
-          setCities([]);
+          setCities([{ label: "Use My Location", value: "use_my_location" }]);
           console.log("No cities found");
         }
       } catch (error) {
         console.error("Error fetching city suggestions:", error);
       }
     } else {
-      setCities([]);
+      setCities([{ label: "Use My Location", value: "use_my_location" }]);
     }
   };
 
   const fetchCityCoordinates = async (placeId) => {
+    if (placeId === "use_my_location") {
+      fetchUserLocation();
+      return;
+    }
+
     if (!placeId || placeId.trim() === "") {
-        console.error("Invalid placeId provided:", placeId);
-        return;
+      console.error("Invalid placeId provided:", placeId);
+      return;
     }
 
     console.log("Fetching details for placeId:", placeId);
 
     try {
-        const response = await axios.get(
-            `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${MAP_API_KEY}`
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${MAP_API_KEY}`
+      );
+      console.log("Place Details Response:", response.data);
+
+      if (response.data.status !== "OK") {
+        console.error(
+          "Error in Places API response:",
+          response.data.status,
+          response.data.error_message
         );
-        console.log("Place Details Response:", response.data);
-
-        if (response.data.status !== "OK") {
-            console.error(
-                "Error in Places API response:",
-                response.data.status,
-                response.data.error_message
-            );
-            return;
-        }
-
-        if (response.data.result && response.data.result.geometry) {
-            const { lat, lng } = response.data.result.geometry.location;
-            setLocation({ latitude: lat, longitude: lng }); // Update map location
-            console.log("New location set:", { latitude: lat, longitude: lng });
-
-            // Update the city name based on the selected place ID
-            const newCityName = response.data.result.name;
-            setCityName(newCityName);
-            console.log("City name updated to:", newCityName);
-        } else {
-            console.error("No geometry found in the Places API response.");
-        }
-    } catch (error) {
-        console.error("Error fetching city coordinates:", error);
-    }
-};
-
-const handleSelectCity = (placeId) => {
-    if (!placeId) {
-        console.error("Invalid placeId selected:", placeId);
         return;
+      }
+
+      if (response.data.result && response.data.result.geometry) {
+        const { lat, lng } = response.data.result.geometry.location;
+        setLocation({ latitude: lat, longitude: lng }); // Update map location
+        console.log("New location set:", { latitude: lat, longitude: lng });
+
+        // Update the city name based on the selected place ID
+        const newCityName = response.data.result.name;
+        setCityName(newCityName);
+        console.log("City name updated to:", newCityName);
+      } else {
+        console.error("No geometry found in the Places API response.");
+      }
+    } catch (error) {
+      console.error("Error fetching city coordinates:", error);
+    }
+  };
+
+  const handleSelectCity = (placeId) => {
+    if (!placeId) {
+      console.log("Invalid placeId selected:", placeId);
+      return;
     }
 
     console.log(`City selected with placeId: ${placeId}`);
     fetchCityCoordinates(placeId);
     setCityPlaceId(placeId);
-};
+  };
 
-const handleWeatherSummaryPress = () => {
+  const handleWeatherSummaryPress = () => {
     console.log(`Navigating to WeatherDetailsScreen for city: ${cityName}`);
-    navigation.navigate("WeatherDetailsScreen", { 
-        lat: location.latitude, 
-        lon: location.longitude,
-        cityName: cityName
+    navigation.navigate("WeatherDetailsScreen", {
+      lat: location.latitude,
+      lon: location.longitude,
+      cityName: cityName,
     });
-    console.log ("lat and lon passed in weather: ", location.latitude, location.longitude);
-};
+    console.log(
+      "lat and lon passed in weather: ",
+      location.latitude,
+      location.longitude
+    );
+  };
 
   const getPlaceIdFromCityName = async (cityName) => {
     try {

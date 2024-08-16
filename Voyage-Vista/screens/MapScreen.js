@@ -144,10 +144,15 @@ const handleSelectCity = (placeId) => {
     setCityPlaceId(placeId);
 };
 
-  const handleWeatherSummaryPress = async () => {
+const handleWeatherSummaryPress = () => {
     console.log(`Navigating to WeatherDetailsScreen for city: ${cityName}`);
-    navigation.navigate("WeatherDetailsScreen", { city: cityName });
-  };
+    navigation.navigate("WeatherDetailsScreen", { 
+        lat: location.latitude, 
+        lon: location.longitude,
+        cityName: cityName
+    });
+    console.log ("lat and lon passed in weather: ", location.latitude, location.longitude);
+};
 
   const getPlaceIdFromCityName = async (cityName) => {
     try {

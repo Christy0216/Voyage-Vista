@@ -21,8 +21,13 @@ import PostItem from "../components/PostItem";
 import { deletePost, fetchPostsByUserId } from "../firebase/firebasePostHelper";
 import { onAuthStateChanged } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
-import * as Permissions from "expo-permissions";
+// import * as Permissions from "expo-permissions";
 import ThemedButton from "../components/ThemedButton";
+import {storage} from "../firebase/firebaseSetUp";
+import {uploadBytesResumable, getDownloadURL, ref} from "firebase/storage";
+
+
+
 
 const ProfileScreen = ({ navigation }) => {
   const [user, setUser] = useState({
@@ -69,17 +74,17 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   const fetchUserPosts = async (userId) => {
-    try{
-    const posts = await fetchPostsByUserId(userId);
-    console.log("User posts:", posts);
-    setUserPosts(
-      posts.map((post) => ({
-        ...post,
-        photos: (post.images || []).slice(0, 4).map((url) => ({ url })),
-      }))
-    );}
-    catch (error) {
-      console.log('Error getting user posts: ', error);
+    try {
+      const posts = await fetchPostsByUserId(userId);
+      console.log("User posts:", posts);
+      setUserPosts(
+        posts.map((post) => ({
+          ...post,
+          photos: (post.images || []).slice(0, 4).map((url) => ({ url })),
+        }))
+      );
+    } catch (error) {
+      console.log("Error getting user posts: ", error);
     }
   };
 
@@ -119,21 +124,52 @@ const ProfileScreen = ({ navigation }) => {
 
     console.log("Image picker result:", result); // Check what the result looks like
 
-    // Check if the operation was not cancelled and assets exist
     if (!result.cancelled && result.assets && result.assets.length > 0) {
-      const uri = result.assets[0].uri; // Access the URI from the first asset
+      const uri = result.assets[0].uri;
       try {
-        console.log("Attempting to update profile picture with URI:", uri);
-        await updateUser(docId, { profilePicture: uri });
-        setUser((previousUser) => ({ ...previousUser, profilePicture: uri }));
+        // Use the retrieveUpLoadImage function to upload the image
+        const imageFullPath = await retrieveUpLoadImage(uri);
+  
+        // Get the download URL of the uploaded image
+        const downloadURL = await getDownloadURL(ref(storage, imageFullPath));
+  
+        // Update the profile picture URL in Firestore
+        await updateUser(docId, { profilePicture: downloadURL });
+        setUser((prevUser) => ({ ...prevUser, profilePicture: downloadURL }));
       } catch (error) {
-        console.error("Error updating user profile picture:", error);
+        console.error("Error uploading profile picture:", error);
         Alert.alert("Error", "Failed to update profile picture.");
       }
     } else {
       console.log("Operation cancelled or failed, no URI to update.");
     }
   };
+  
+  // Updated retrieveUpLoadImage function
+  async function retrieveUpLoadImage(uri) {
+    const response = await fetch(uri);
+    try {
+      if (!response.ok) {
+        throw new Error("HTTP error, status = " + response.status);
+      }
+      const blob = await response.blob();
+      const imageName = `profile_${user.userId}_${Date.now()}`;
+      const imageRef = ref(storage, `profile_pictures/${imageName}`);
+      const uploadResult = await uploadBytesResumable(imageRef, blob);
+      console.log("Full path", uploadResult.metadata.fullPath);
+      return uploadResult.metadata.fullPath;
+    } catch (e) {
+      console.log(e);
+      throw e; // Re-throw the error to be caught in handleProfilePictureChange
+    }
+  }
+
+  // const uploadImage = async (uri, storageRef) => {
+  //   const response = await fetch(uri);
+  //   const blob = await response.blob();
+  //   return storageRef.put(blob);
+  // };
+
 
   const chooseProfilePicture = () => {
     Alert.alert(
@@ -236,11 +272,11 @@ const ProfileScreen = ({ navigation }) => {
         )}
       </View>
       <View style={styles.buttonContainer}>
-      <ThemedButton
-        title="View Favorites"
-        onPress={() => navigation.navigate("FavoritesScreen")}
-      />
- </View>
+        <ThemedButton
+          title="View Favorites"
+          onPress={() => navigation.navigate("FavoritesScreen")}
+        />
+      </View>
       <FlatList
         data={userPosts}
         keyExtractor={(item) => item.id.toString()}
@@ -287,8 +323,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   buttonContainer: {
-    alignItems: 'center',
-    marginVertical: 20, 
+    alignItems: "center",
+    marginVertical: 20,
   },
 });
 

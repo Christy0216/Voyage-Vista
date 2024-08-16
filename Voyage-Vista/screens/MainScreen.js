@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, FlatList, StyleSheet, Image } from "react-native";
 import { db } from "../firebase/firebaseSetUp";
 import { collection, onSnapshot } from "firebase/firestore";
@@ -7,29 +7,33 @@ import { useTheme } from "../context/ThemeContext";
 import { getUser } from "../firebase/firebaseUserHelper";
 import { auth } from "../firebase/firebaseSetUp";
 import { defaultPicture } from "../reusables/objects";
+import { useFocusEffect } from "@react-navigation/native";
 
 const MainScreen = () => {
   const [posts, setPosts] = useState([]);
   const [profilePhoto, setProfilePhoto] = useState("");
   const { theme } = useTheme();
 
-  useEffect(() => {
-    const fetchProfilePhoto = async () => {
-      try{
+  const fetchProfilePhoto = async () => {
+    try {
       if (auth.currentUser) {
         const userData = await getUser(auth.currentUser.uid);
         if (userData) {
           setProfilePhoto(userData.profilePicture || defaultPicture);
         }
       }
+    } catch (error) {
+      console.log("Error getting profile photo: ", error);
     }
-    catch (error) {
-      console.log('Error getting profile photo: ', error);
-    }
-    };
+  };
 
-    fetchProfilePhoto();
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfilePhoto();
+    }, [])
+  );
 
+  useEffect(() => {
     const postsCollectionRef = collection(db, "posts");
     const unsubscribe = onSnapshot(postsCollectionRef, async (snapshot) => {
       const postsList = await Promise.all(

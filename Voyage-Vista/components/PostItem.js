@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 
+
 const PostItem = ({ post }) => {
     const navigation = useNavigation();
 
@@ -27,7 +28,7 @@ const PostItem = ({ post }) => {
                         {post.images.slice(0, 4).map((image, index) => (
                             <Image
                                 key={index}
-                                source={{ uri: image }}
+                                source={{ uri: image }}  // Using the image URLs stored in post.images
                                 style={styles.photo}
                             />
                         ))}

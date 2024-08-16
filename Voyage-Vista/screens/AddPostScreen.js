@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,13 +8,9 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Image,
-  FlatList,
-  Alert,
   ScrollView,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-import MapView, { Marker } from "react-native-maps";
-import * as Geocoding from "expo-location";
 import { useTheme } from "../context/ThemeContext";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
@@ -30,7 +26,6 @@ const AddPostScreen = ({ navigation }) => {
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState("");
   const { theme } = useTheme();
-  const mapRef = useRef(null);
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
@@ -62,80 +57,7 @@ const AddPostScreen = ({ navigation }) => {
       }
     };
     getPermissions();
-    centerMapOnUser();
   }, []);
-
-  const centerMapOnUser = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission to access location was denied");
-      return;
-    }
-
-    let loc = await Location.getCurrentPositionAsync({});
-    const newRegion = {
-      latitude: loc.coords.latitude,
-      longitude: loc.coords.longitude,
-      latitudeDelta: 0.0922,
-      longitudeDelta: 0.0421,
-    };
-
-    setCoordinates({
-      lat: loc.coords.latitude,
-      lon: loc.coords.longitude,
-    });
-
-    const reverseGeocode = await Geocoding.reverseGeocodeAsync({
-      latitude: loc.coords.latitude,
-      longitude: loc.coords.longitude,
-    });
-
-    if (reverseGeocode.length > 0) {
-      setAddress(reverseGeocode[0].formattedAddress);
-    }
-
-    if (mapRef.current) {
-      mapRef.current.animateToRegion(newRegion, 1000);
-    }
-  };
-
-  const handleAddressChange = async (text) => {
-    setAddress(text);
-
-    try {
-      const geocode = await Geocoding.geocodeAsync(text);
-      if (geocode.length > 0) {
-        const { latitude, longitude } = geocode[0];
-        setCoordinates({ lat: latitude, lon: longitude });
-
-        const newRegion = {
-          latitude,
-          longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        };
-
-        if (mapRef.current) {
-          mapRef.current.animateToRegion(newRegion, 1000);
-        }
-      } else {
-        Alert.alert("Address not found", "Please enter a valid address.");
-      }
-    } catch (error) {
-      console.error("Error fetching geocode:", error);
-    }
-  };
-
-  const handleMapPress = (e) => {
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-    setCoordinates({ lat: latitude, lon: longitude });
-
-    Geocoding.reverseGeocodeAsync({ latitude, longitude }).then((res) => {
-      if (res.length > 0) {
-        setAddress(res[0].formattedAddress);
-      }
-    });
-  };
 
   const handleSelectImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -203,141 +125,47 @@ const AddPostScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
+    // First, upload images to Firebase Storage and get download URLs
+    const uploadedImageUrls = await Promise.all(
+        images.map(async (imageUri, index) => {
+            const imageRef = ref(
+                storage,
+                `posts/${auth.currentUser.uid}/${Date.now()}_${index}`
+            );
+            const response = await fetch(imageUri);
+            const blob = await response.blob();
+
+            await uploadBytes(imageRef, blob);
+
+            return await getDownloadURL(imageRef);
+        })
+    );
+
     const post = {
-      uid: auth.currentUser.uid,
-      story,
-      destination,
-      addressType,
-      location,
-      address,
-      images,
+        uid: auth.currentUser.uid,
+        story,
+        destination,
+        addressType,
+        location,
+        address,
+        images: uploadedImageUrls, // Use the uploaded image URLs
     };
 
     try {
-      const docRefId = await createPost(auth.currentUser.uid, post);
+        const docRefId = await createPost(auth.currentUser.uid, post);
 
-      console.log("Post created with ID:", docRefId);
-      setStory("");
-      setDestination("");
-      setAddressType("city");
-      setLocation(null);
-      setImages([]);
-      setAddress("");
-      navigation.goBack();
+        console.log("Post created with ID:", docRefId);
+        setStory("");
+        setDestination("");
+        setAddressType("city");
+        setLocation(null);
+        setImages([]);
+        setAddress("");
+        navigation.goBack();
     } catch (error) {
-      console.error("Error adding post:", error);
+        console.error("Error adding post:", error);
     }
-  };
-
-  const renderContent = () => (
-    <View style={themedStyles.contentContainer}>
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        data={images}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <Image source={{ uri: item }} style={themedStyles.image} />
-        )}
-        style={themedStyles.imageContainer}
-      />
-      <TouchableOpacity onPress={handleSelectImage} style={themedStyles.button}>
-        <Text style={themedStyles.buttonText}>Select Image</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={takePhoto} style={themedStyles.button}>
-        <Text style={themedStyles.buttonText}>Take Photo</Text>
-      </TouchableOpacity>
-      <TextInput
-        style={themedStyles.input}
-        value={destination}
-        onChangeText={setDestination}
-        placeholder="Destination"
-        placeholderTextColor={theme.placeholderTextColor}
-      />
-      <TextInput
-        style={themedStyles.input}
-        value={story}
-        onChangeText={setStory}
-        placeholder="Story"
-        placeholderTextColor={theme.placeholderTextColor}
-        multiline
-      />
-      <DropDownPicker
-        open={open}
-        value={addressType}
-        items={items}
-        setOpen={setOpen}
-        setValue={setAddressType}
-        setItems={setItems}
-        style={themedStyles.picker}
-        dropDownContainerStyle={themedStyles.dropdownStyle}
-        textStyle={{ color: theme.textColor }}
-        placeholderStyle={{ color: theme.placeholderTextColor }}
-      />
-      <TextInput
-        style={themedStyles.input}
-        value={address}
-        onChangeText={handleAddressChange}
-        placeholder="Address"
-        placeholderTextColor={theme.placeholderTextColor}
-      />
-      <TextInput
-        style={themedStyles.input}
-        value={`${coordinates.lat}`}
-        onChangeText={(lat) =>
-          setCoordinates({ ...coordinates, lat: parseFloat(lat) })
-        }
-        placeholder="Latitude"
-        placeholderTextColor={theme.placeholderTextColor}
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={themedStyles.input}
-        value={`${coordinates.lon}`}
-        onChangeText={(lon) =>
-          setCoordinates({ ...coordinates, lon: parseFloat(lon) })
-        }
-        placeholder="Longitude"
-        placeholderTextColor={theme.placeholderTextColor}
-        keyboardType="numeric"
-      />
-
-      <MapView
-        ref={mapRef}
-        style={themedStyles.map}
-        initialRegion={{
-          latitude: coordinates.lat || 37.78825,
-          longitude: coordinates.lon || -122.4324,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-        onPress={handleMapPress}
-      >
-        {coordinates.lat && coordinates.lon ? (
-          <Marker
-            coordinate={{
-              latitude: coordinates.lat,
-              longitude: coordinates.lon,
-            }}
-            draggable
-            onDragEnd={handleMapPress}
-          />
-        ) : null}
-      </MapView>
-
-      <TextInput
-        style={themedStyles.input}
-        value={comment}
-        onChangeText={setComment}
-        placeholder="Comment"
-        placeholderTextColor={theme.placeholderTextColor}
-        multiline
-      />
-      <TouchableOpacity onPress={handleSubmit} style={themedStyles.button}>
-        <Text style={themedStyles.buttonText}>Submit Post</Text>
-      </TouchableOpacity>
-    </View>
-  );
+};
 
   const themedStyles = styles(theme);
 
@@ -423,9 +251,6 @@ const styles = (theme) =>
       padding: 20,
       backgroundColor: theme.backgroundColor,
     },
-    contentContainer: {
-      paddingBottom: 20,
-    },
     imageContainer: {
       flexDirection: "row",
       marginBottom: 10,
@@ -443,7 +268,6 @@ const styles = (theme) =>
       marginBottom: 10,
       borderRadius: 5,
       backgroundColor: theme.inputBackgroundColor,
-      color: theme.textColor,
     },
     storyInput: {
       height: 150, // Adjust the height as needed
@@ -460,7 +284,6 @@ const styles = (theme) =>
     dropdownStyle: {
       backgroundColor: theme.backgroundColor,
     },
-
     addressText: {
       marginVertical: 10,
       fontSize: 16,

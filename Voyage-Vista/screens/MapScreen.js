@@ -14,7 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { Map } from "../components/Map";
 import { MAP_API_KEY, OPENWEATHER_API_KEY } from "@env";
-
+ 
 const MapScreen = ({ navigation }) => {
   const [cityName, setCityName] = useState("");
   const [cityPlaceId, setCityPlaceId] = useState("");
@@ -24,7 +24,7 @@ const MapScreen = ({ navigation }) => {
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const { theme } = useTheme();
-
+ 
   useEffect(() => {
     const fetchUserLocation = async () => {
       try {
@@ -33,24 +33,24 @@ const MapScreen = ({ navigation }) => {
           console.log("Permission to access location was denied");
           return;
         }
-
+ 
         let loc = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = loc.coords;
         setLocation({ latitude, longitude });
-
+ 
         console.log("User location fetched:", { latitude, longitude });
-
+ 
         // Reverse geocoding to get the city name
         const response = await axios.get(
           `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${MAP_API_KEY}`
         );
-
+ 
         if (response.data.results.length > 0) {
           const addressComponents = response.data.results[0].address_components;
           const cityComponent = addressComponents.find((component) =>
             component.types.includes("locality")
           );
-
+ 
           if (cityComponent) {
             const userCity = cityComponent.long_name;
             const placeId = await getPlaceIdFromCityName(userCity);
@@ -72,10 +72,10 @@ const MapScreen = ({ navigation }) => {
         console.error("Error fetching user location:", error);
       }
     };
-
+ 
     fetchUserLocation();
   }, []);
-
+ 
   const fetchCities = async (query) => {
     if (query.length > 2) {
       try {
@@ -83,7 +83,7 @@ const MapScreen = ({ navigation }) => {
           `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${query}&types=(cities)&key=${MAP_API_KEY}`
         );
         console.log("API Response:", response.data);
-
+ 
         if (response.data.predictions.length > 0) {
           const citySuggestions = response.data.predictions.map(
             (prediction) => ({
@@ -104,21 +104,21 @@ const MapScreen = ({ navigation }) => {
       setCities([]);
     }
   };
-
+ 
   const fetchCityCoordinates = async (placeId) => {
     if (!placeId || placeId.trim() === "") {
       console.error("Invalid placeId provided:", placeId);
       return;
     }
-
+ 
     console.log("Fetching details for placeId:", placeId);
-
+ 
     try {
       const response = await axios.get(
         `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${MAP_API_KEY}`
       );
       console.log("Place Details Response:", response.data);
-
+ 
       if (response.data.status !== "OK") {
         console.error(
           "Error in Places API response:",
@@ -127,17 +127,17 @@ const MapScreen = ({ navigation }) => {
         );
         return;
       }
-
+ 
       if (response.data.result && response.data.result.geometry) {
         const { lat, lng } = response.data.result.geometry.location;
         setLocation({ latitude: lat, longitude: lng }); // Update map location
         console.log("New location set:", { latitude: lat, longitude: lng });
-
+ 
         // Update the city name based on the selected place ID
         const newCityName = response.data.result.name;
         setCityName(newCityName);
         console.log("City name updated to:", newCityName);
-
+ 
         // Fetch weather for the new location
         fetchWeather(lat, lng);
       } else {
@@ -147,7 +147,7 @@ const MapScreen = ({ navigation }) => {
       console.error("Error fetching city coordinates:", error);
     }
   };
-
+ 
   const fetchWeather = async (latitude, longitude) => {
     setIsLoadingWeather(true);
     try {
@@ -164,18 +164,18 @@ const MapScreen = ({ navigation }) => {
       setIsLoadingWeather(false);
     }
   };
-
+ 
   const handleSelectCity = (placeId) => {
     if (!placeId) {
       console.error("Invalid placeId selected:", placeId);
       return;
     }
-
+ 
     console.log(`City selected with placeId: ${placeId}`);
     fetchCityCoordinates(placeId);
     setCityPlaceId(placeId);
   };
-
+ 
   const handleWeatherSummaryPress = () => {
     console.log(`Navigating to WeatherDetailsScreen for city: ${cityName}`);
     navigation.navigate("WeatherScreen", {
@@ -189,13 +189,13 @@ const MapScreen = ({ navigation }) => {
       location.longitude
     );
   };
-
+ 
   const getPlaceIdFromCityName = async (cityName) => {
     try {
       const response = await axios.get(
         `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${cityName}&types=(cities)&key=${MAP_API_KEY}`
       );
-
+ 
       if (response.data.predictions.length > 0) {
         const placeId = response.data.predictions[0].place_id;
         return placeId;
@@ -208,13 +208,13 @@ const MapScreen = ({ navigation }) => {
       return null;
     }
   };
-
+ 
   const getCityNameFromPlaceId = async (placeId) => {
     try {
       const response = await axios.get(
         `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${MAP_API_KEY}`
       );
-
+ 
       if (response.data.status === "OK") {
         const cityName = response.data.result.name;
         return cityName;
@@ -231,7 +231,7 @@ const MapScreen = ({ navigation }) => {
       return null;
     }
   };
-
+ 
   const getWeatherIcon = (condition) => {
     switch (condition) {
       case "Clear":
@@ -248,7 +248,7 @@ const MapScreen = ({ navigation }) => {
         return "partly-sunny";
     }
   };
-
+ 
   const getWeatherIconColor = (condition) => {
     switch (condition) {
       case "Clear":
@@ -265,7 +265,7 @@ const MapScreen = ({ navigation }) => {
         return theme.iconColor; // Default to theme's icon color
     }
   };
-
+ 
   return (
     <View
       style={[styles.container, { backgroundColor: theme.backgroundColor }]}
@@ -290,7 +290,7 @@ const MapScreen = ({ navigation }) => {
           color: theme.textColor,
         }}
       />
-
+ 
       {/* Weather summary */}
       <TouchableOpacity onPress={handleWeatherSummaryPress}>
         <View style={styles.weatherSummaryContainer}>
@@ -317,7 +317,7 @@ const MapScreen = ({ navigation }) => {
           )}
         </View>
       </TouchableOpacity>
-
+ 
       {/* Map view */}
       <View style={styles.mapContainer}>
         <Map location={location} />
@@ -325,7 +325,7 @@ const MapScreen = ({ navigation }) => {
     </View>
   );
 };
-
+ 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -379,5 +379,5 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
 });
-
+ 
 export default MapScreen;

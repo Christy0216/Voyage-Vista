@@ -15,7 +15,7 @@ import { useTheme } from "../context/ThemeContext";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { auth } from "../firebase/firebaseSetUp";
-import { createPost, addPostComment } from "../firebase/firebasePostHelper";
+import { createPost, updatePost } from "../firebase/firebasePostHelper";
 import { MAP_API_KEY } from "@env";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase/firebaseSetUp";
@@ -113,6 +113,9 @@ const AddPostScreen = ({ navigation }) => {
   const updateAddress = async () => {
     const latlng = `${location.latitude},${location.longitude}`;
     try {
+      console.log("addressType", addressType);
+      console.log("latlng", latlng);
+      console.log("MAP_API_KEY", MAP_API_KEY);
       const addressStr = await fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${MAP_API_KEY}`
       )
@@ -127,47 +130,54 @@ const AddPostScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    // First, upload images to Firebase Storage and get download URLs
-    const uploadedImageUrls = await Promise.all(
-        images.map(async (imageUri, index) => {
-            const imageRef = ref(
-                storage,
-                `posts/${auth.currentUser.uid}/${Date.now()}_${index}`
-            );
-            const response = await fetch(imageUri);
-            const blob = await response.blob();
-
-            await uploadBytes(imageRef, blob);
-
-            return await getDownloadURL(imageRef);
-        })
-    );
-
-    const post = {
+    try {
+      // Create a post object without images first
+      const post = {
         uid: auth.currentUser.uid,
         story,
         destination,
         addressType,
         location,
         address,
-        images: uploadedImageUrls, // Use the uploaded image URLs
-    };
-
-    try {
-        const docRefId = await createPost(auth.currentUser.uid, post);
-
-        console.log("Post created with ID:", docRefId);
-        setStory("");
-        setDestination("");
-        setAddressType("city");
-        setLocation(null);
-        setImages([]);
-        setAddress("");
-        navigation.goBack();
+        images: [], // This will be updated with the actual URLs after images are uploaded
+      };
+  
+      // Add the post to Firestore to get the postId
+      const docRefId = await createPost(auth.currentUser.uid, post);
+      console.log("Post created with ID:", docRefId);
+  
+      // Now upload images to Firebase Storage using the postId
+      const uploadedImageUrls = await Promise.all(
+        images.map(async (imageUri, index) => {
+          const imageRef = ref(
+            storage,
+            `posts/${docRefId}/${Date.now()}_${index}`
+          );
+          const response = await fetch(imageUri);
+          const blob = await response.blob();
+  
+          await uploadBytes(imageRef, blob);
+          return await getDownloadURL(imageRef);
+        })
+      );
+  
+      // Update the post document with the image URLs
+      await updatePost(docRefId, { images: uploadedImageUrls });
+      console.log("Post images uploaded and post updated with image URLs.");
+  
+      // Reset state after submission
+      setStory("");
+      setDestination("");
+      setLocation(null);
+      setAddressType("street_address");
+      setImages([]);
+      setAddress("");
+      navigation.goBack();
     } catch (error) {
-        console.error("Error adding post:", error);
+      console.error("Error adding post:", error);
     }
-};
+  };
+  
 
   const themedStyles = styles(theme);
 

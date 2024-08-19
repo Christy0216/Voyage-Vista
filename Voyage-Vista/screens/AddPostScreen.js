@@ -16,7 +16,9 @@ import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { auth } from "../firebase/firebaseSetUp";
 import { createPost, addPostComment } from "../firebase/firebasePostHelper";
-import { mapsApiKey } from "@env";
+import { MAP_API_KEY } from "@env";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../firebase/firebaseSetUp";
 
 const AddPostScreen = ({ navigation }) => {
   const [story, setStory] = useState("");
@@ -98,7 +100,7 @@ const AddPostScreen = ({ navigation }) => {
       const latlng = `${loc.coords.latitude},${loc.coords.longitude}`;
 
       const address = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${mapsApiKey}`
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${MAP_API_KEY}`
       );
       const addressJson = await address.json();
       
@@ -112,7 +114,7 @@ const AddPostScreen = ({ navigation }) => {
     const latlng = `${location.latitude},${location.longitude}`;
     try {
       const addressStr = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${mapsApiKey}`
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${MAP_API_KEY}`
       )
         .then((response) => response.json())
         .then((data) => {
@@ -224,7 +226,7 @@ const AddPostScreen = ({ navigation }) => {
           <View style={themedStyles.mapContainer}>
             <Image
               source={{
-                uri: `https://maps.googleapis.com/maps/api/staticmap?center=${location.latitude},${location.longitude}&zoom=15&size=600x300&markers=color:red%7Clabel:A%7C${location.latitude},${location.longitude}&key=${mapsApiKey}`,
+                uri: `https://maps.googleapis.com/maps/api/staticmap?center=${location.latitude},${location.longitude}&zoom=15&size=600x300&markers=color:red%7Clabel:A%7C${location.latitude},${location.longitude}&key=${MAP_API_KEY}`,
               }}
               style={themedStyles.map}
             />

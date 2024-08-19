@@ -1,14 +1,15 @@
-import React from "react";
-import { View, Text, Switch, Button, StyleSheet } from "react-native";
+// src/screens/SettingsScreen.js
+import React from 'react';
+import { View, Text, Switch, StyleSheet } from 'react-native';
 import { useTheme } from "../context/ThemeContext";
-import { themes } from "../styles/themes";
+import { useNotification } from "../context/NotificationContext"; // Import useNotification
+import ThemedButton from "../components/ThemedButton";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebaseSetUp";
-import ThemedButton from "../components/ThemedButton";
-
 
 const SettingsScreen = ({ navigation }) => {
   const { theme, toggleTheme } = useTheme();
+  const { notificationsEnabled, toggleNotifications } = useNotification(); // Use the context
 
   async function handleSignOut() {
     try {
@@ -19,18 +20,19 @@ const SettingsScreen = ({ navigation }) => {
   }
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
-    >
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <View style={styles.content}>
-        <Text style={[styles.text, { color: theme.textColor }]}>
-          Toggle Theme
+        <Text style={[styles.text, { color: theme.textColor }]}>Toggle Theme</Text>
+        <Switch onValueChange={toggleTheme} value={theme === theme.dark} />
+        <Text style={[styles.text, { color: theme.textColor, marginTop: 20 }]}>
+          Enable Notifications
         </Text>
-        <Switch onValueChange={toggleTheme} value={theme === themes.dark} />
+        <Switch
+          onValueChange={toggleNotifications}
+          value={notificationsEnabled}
+        />
       </View>
-      <View style={styles.signOutButton}>
-        <ThemedButton title="Sign Out" onPress={handleSignOut} />
-      </View>
+      <ThemedButton title="Sign Out" onPress={handleSignOut} style={styles.signOutButton} />
     </View>
   );
 };
@@ -51,7 +53,6 @@ const styles = StyleSheet.create({
   },
   signOutButton: {
     paddingVertical: 16,
-    alignItems: "center",
   },
 });
 

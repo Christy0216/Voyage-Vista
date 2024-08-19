@@ -15,12 +15,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase only if it hasn't been initialized yet
-let app;
-if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-} else {
-    app = getApp(); // use the already initialized app
-}
+
+app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
 export const auth = initializeAuth(app, { persistence: getReactNativePersistence(AsyncStorage) });

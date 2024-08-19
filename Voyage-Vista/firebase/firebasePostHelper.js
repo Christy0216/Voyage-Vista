@@ -1,6 +1,7 @@
-import { db, auth } from './firebaseSetUp';
+import { db, auth, storage } from './firebaseSetUp';
 import { collection, doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, query, writeBatch, increment, arrayUnion, arrayRemove, limit, where } from "firebase/firestore";
 import { addUserPost, removeUserPost, getUser } from './firebaseUserHelper';
+import { ref, listAll, deleteObject } from 'firebase/storage';
 
 
 // Helper function to delete documents in a subcollection in batches
@@ -118,22 +119,34 @@ export const updatePost = async (postId, updatedFields) => {
   }
 };
 
-// Delete a post
-export const deletePost = async (userId, postId) => {
-  try {
-    // Delete subcollections first
-    await deleteSubcollectionInBatches(postId, 'photos');
-    await deleteSubcollectionInBatches(postId, 'comments');
+const deletePostImages = async (postId) => {
+  const imagesRef = ref(storage, `posts/${postId}/`);
 
+  try {
+    const listResult = await listAll(imagesRef);
+    const deletePromises = listResult.items.map((imageRef) => deleteObject(imageRef));
+    await Promise.all(deletePromises);
+    console.log('Post images deleted successfully from Firebase Storage');
+  } catch (error) {
+    console.error('Error deleting post images: ', error);
+  }
+};
+// Delete a post
+export const deletePost = async (postId) => {
+  try {
+
+    // Delete images from Firebase Storage
+    await deletePostImages(postId);
+
+    // Delete subcollections first
+    await deleteSubcollectionInBatches(postId, 'comments');
+    
     // Delete the post document
     await deleteDoc(doc(db, 'posts', postId));
 
-    // Remove the post reference from the user document
-    await removeUserPost(userId, postId);
-    
-    console.log('Post deleted successfully');
+    console.log('Post and all related data deleted successfully');
   } catch (error) {
-    console.log('Error deleting post: ', error);
+    console.error('Error deleting post: ', error);
   }
 };
 

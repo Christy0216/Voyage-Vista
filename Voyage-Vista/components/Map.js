@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, Modal, Text, Image, Button } from 'react-native';
+import { View, StyleSheet, Modal, Text, Image, Button, TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
@@ -144,6 +144,12 @@ export const Map = ({ location }) => {
                     />
                 ))}
             </MapView>
+            <TouchableOpacity
+                style={styles.locateButton}
+                onPress={centerMapOnUser}
+            >
+                <Ionicons name="locate-outline" size={24} color="white" />
+            </TouchableOpacity>
 
             {/* Modal for displaying post details */}
             {selectedPost && (
@@ -181,6 +187,16 @@ export const Map = ({ location }) => {
 };
 
 const styles = StyleSheet.create({
+    locateButton: {
+        position: 'absolute',
+        top: 40,
+        right: 20,
+        backgroundColor: 'blue',
+        padding: 10,
+        borderRadius: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     modalView: {
         margin: 20,
         backgroundColor: 'white',

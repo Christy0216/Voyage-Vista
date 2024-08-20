@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  FlatList,
 } from "react-native";
 import { useTheme } from "../context/ThemeContext"; // Import the theme context
 import { defaultPicture } from "../reusables/objects"; // Import the default picture
@@ -49,6 +48,7 @@ import { themes } from "../styles/themes";
 const PostDetailsScreen = ({ route, navigation }) => {
   const { postId } = route.params;
   const [postDetails, setPostDetails] = useState(null);
+  const postDetailsRef = useRef(postDetails); // Create a ref to store the latest postDetails
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
   const [liked, setLiked] = useState(false);
@@ -60,35 +60,38 @@ const PostDetailsScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     const fetchDetails = async () => {
-      const details = await getPostWithUserDetails(postId);
-      if (details) {
-        setPostDetails(details.post);
-        const uid = auth.currentUser.uid;
-        const user = await getUser(uid);
-        setUserDoc(user);
-        setLiked(details.post.likedBy?.includes(currentUser.uid));
-        setFavorited(details.post.favoritedBy?.includes(currentUser.uid));
-        fetchComments(postId);
-        navigation.setOptions({
-          headerRight: () =>
-            details.post.uid === auth.currentUser.uid ? (
-              <TouchableOpacity
-                onPress={handleDelete}
-                style={{ marginRight: 15 }}
-              >
-                <FontAwesome name="trash" size={30} color={theme.buttonColor} />
-              </TouchableOpacity>
-            ) : null,
-        });
+      try {
+        const details = await getPostWithUserDetails(postId);
+        if (details) {
+          setPostDetails(details.post);
+          postDetailsRef.current = details.post; // Update the ref with the latest postDetails
+          const uid = auth.currentUser.uid;
+          const user = await getUser(uid);
+          setUserDoc(user);
+          setLiked(details.post.likedBy?.includes(currentUser.uid));
+          setFavorited(details.post.favoritedBy?.includes(currentUser.uid));
+          fetchComments(postId);
+
+          navigation.setOptions({
+            headerRight: () =>
+              details.post.uid === auth.currentUser.uid ? (
+                <TouchableOpacity
+                  onPress={handleDelete}
+                  style={{ marginRight: 15 }}
+                >
+                  <FontAwesome name="trash" size={30} color={theme.buttonColor} />
+                </TouchableOpacity>
+              ) : null,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching post details: ", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    try{
+
     fetchDetails();
-    }
-    catch (error) {
-      console.log('Error fetching post details: ', error);
-    }
   }, [postId, navigation]);
 
   const fetchComments = async (postId) => {
@@ -107,6 +110,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
 
   const handleAddComment = async () => {
     if (comment.trim()) {
+      console.log("in comment: ", currentUser)
       const newComment = {
         userId: currentUser.uid,
         content: comment.trim(),
@@ -148,6 +152,7 @@ const PostDetailsScreen = ({ route, navigation }) => {
 
   const toggleFavorite = async () => {
     const newFavoritedState = !favorited;
+    console.log("postDetails in toggleFavorite", postDetails);
     setFavorited(newFavoritedState);
     setPostDetails((prevDetails) => ({
       ...prevDetails,
@@ -175,14 +180,19 @@ const PostDetailsScreen = ({ route, navigation }) => {
   };
 
   const handleDelete = async () => {
-    if (currentUser && postDetails.uid === currentUser.uid) {
+    console.log("postDetails in handleDelete", postDetailsRef.current);
+    if (currentUser && postDetailsRef.current.uid === currentUser.uid) {
       Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
         { text: "Cancel" },
         {
           text: "Delete",
           onPress: async () => {
-            await deletePost(currentUser.uid, postId);
-            navigation.goBack();
+            try {
+              await deletePost(postId);
+              navigation.goBack();
+            } catch (error) {
+              console.error("Error deleting post: ", error);
+            }
           },
         },
       ]);

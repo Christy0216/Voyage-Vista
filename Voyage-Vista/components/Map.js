@@ -26,7 +26,7 @@ export const Map = ({ location }) => {
     const [selectedPost, setSelectedPost] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
     const mapRef = useRef(null);
-    const navigation = useNavigation();
+    const navigation = useNavigation();  // Use the navigation hook
 
     const centerMapOnUser = async () => {
         try {
@@ -112,6 +112,11 @@ export const Map = ({ location }) => {
         });
     };
 
+    const navigateToDetailPage = () => {
+        setModalVisible(false);  // Close the modal
+        navigation.navigate('PostDetailsScreen', { postId: selectedPost.id });  // Navigate to the detail page with postId
+    };
+
     return (
         <View style={{ flex: 1 }}>
             <MapView
@@ -164,7 +169,10 @@ export const Map = ({ location }) => {
                                 style={styles.image}
                             />
                         )}
-                        <Button title="Close" onPress={() => setModalVisible(false)} />
+                        <View style={styles.buttonContainer}>
+                            <Button title="View Details" onPress={navigateToDetailPage} />
+                            <Button title="Close" onPress={() => setModalVisible(false)} />
+                        </View>
                     </View>
                 </Modal>
             )}
@@ -200,6 +208,12 @@ const styles = StyleSheet.create({
         resizeMode: 'cover',
         borderWidth: 1,
         borderColor: 'black',
+    },
+    buttonContainer: {
+        marginTop: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
     },
 });
 

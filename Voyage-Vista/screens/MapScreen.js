@@ -82,6 +82,7 @@ const MapScreen = ({ navigation }) => {
     }
   }, [location, weatherData]);
 
+
   const fetchCities = async (query) => {
     if (query.length > 2) {
       try {
@@ -322,6 +323,7 @@ const MapScreen = ({ navigation }) => {
         <NotificationManager location={location} />
       )}
     </View>
+    
   );
 };
 
@@ -337,45 +339,65 @@ const styles = StyleSheet.create({
   },
   weatherSummaryContainer: {
     marginBottom: 10,
-    paddingVertical: 20, // Increase padding for a more spacious feel
-    paddingHorizontal: 20, // Increase horizontal padding
-    backgroundColor: "#ADD8E6", // Light blue background for a user-friendly look
-    borderRadius: 10, // More rounded corners for a softer appearance
-    shadowColor: "#000", // Shadow effect for depth
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    backgroundColor: "#ADD8E6",
+    borderRadius: 10,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 5, // Elevation for Android shadow
+    elevation: 5,
   },
   weatherSummaryText: {
-    fontSize: 18, // A decent font size for readability
-    marginBottom: 10, // Add space between the text and the preview
-    fontWeight: "bold", // Bold text for emphasis
+    fontSize: 18,
+    marginBottom: 10,
+    fontWeight: "bold",
   },
   weatherPreviewContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start", // Align content to the left
+    justifyContent: "flex-start",
     paddingVertical: 10,
     paddingHorizontal: 15,
-    backgroundColor: "#fff", // White background to contrast the icon and text
-    borderRadius: 10, // More rounded corners
-    shadowColor: "#000", // Shadow effect for depth
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 5, // Elevation for Android shadow
+    elevation: 5,
   },
   weatherPreviewText: {
-    fontSize: 20, // Increase font size for better readability
-    marginLeft: 15, // More spacing between icon and text
-    fontWeight: "bold", // Bold text for emphasis
+    fontSize: 20,
+    marginLeft: 15,
+    fontWeight: "bold",
   },
   mapContainer: {
-    height: 200,
+    height: 400,  // Increased height of the map
     backgroundColor: "lightgray",
     borderRadius: 10,
     overflow: "hidden",
+  },
+  postDetailsContainer: {
+    padding: 16,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  postDetailsText: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  linkText: {
+    fontSize: 16,
+    color: "#1E90FF",
+    fontWeight: "bold",
   },
 });
 

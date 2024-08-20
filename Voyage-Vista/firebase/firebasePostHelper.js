@@ -145,6 +145,9 @@ export const deletePost = async (postId) => {
     await deleteDoc(doc(db, 'posts', postId));
 
     console.log('Post and all related data deleted successfully');
+    userDoc = await getUser(auth.currentUser.uid);
+    await removeUserPost(userDoc.id, postId);
+    console.log('Post removed from user successfully');
   } catch (error) {
     console.error('Error deleting post: ', error);
   }

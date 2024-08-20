@@ -38,7 +38,7 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
 
   - **Fields:**
     - `userId`: Identifier of the user who created the post.
-    - `destination`\*: Destination mentioned in the post.
+    - `destination`: Destination mentioned in the post.
     - `addressType`: Whether it is a city or precise address.
     - `pictureUrl`: URL of the picture related to the post.
     - `createdAt`: Time when the post was created.

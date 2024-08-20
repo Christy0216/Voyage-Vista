@@ -92,9 +92,39 @@ Voyage Vista is a React Native app designed to enhance the travel experience by 
 
 ## Screenshots
 
-<img src="./Voyage-Vista//res/main_screen_screenshot1.png" alt="Main Screen" width="400" />
+<div style="display: flex; flex-wrap: wrap; gap: 20px;">
 
-_Caption: Updated Main screen showing the list of users' posts._
+  <div style="flex: 1; min-width: 400px;">
+    <img src="./Voyage-Vista/res/main_screen_screenshot1.png" alt="Main Screen" width="400" />
+    <p style="text-align: center;">Caption: Updated Main screen showing the list of users' posts.</p>
+  </div>
+
+  <div style="flex: 1; min-width: 400px;">
+    <img src="./Voyage-Vista/res/Add_Post_Screen.jpg" alt="Add Post Screen" width="400" />
+    <p style="text-align: center;">Caption: Add Post screen where users can upload new travel posts.</p>
+  </div>
+
+  <div style="flex: 1; min-width: 400px;">
+    <img src="./Voyage-Vista/res/Map_Screen.jpg" alt="Map Screen" width="400" />
+    <p style="text-align: center;">Caption: Map screen displaying travel posts nearby.</p>
+  </div>
+
+  <div style="flex: 1; min-width: 400px;">
+    <img src="./Voyage-Vista/res/Profile_Screen.jpg" alt="Profile Screen" width="400" />
+    <p style="text-align: center;">Caption: Profile screen showing user's profile information and posts.</p>
+  </div>
+
+  <div style="flex: 1; min-width: 400px;">
+    <img src="./Voyage-Vista/res/Setting_Screen.jpg" alt="Setting Screen" width="400" />
+    <p style="text-align: center;">Caption: Settings screen allowing users to adjust app preferences.</p>
+  </div>
+
+  <div style="flex: 1; min-width: 400px;">
+    <img src="./Voyage-Vista/res/Weather_Screen.jpg" alt="Weather Screen" width="400" />
+    <p style="text-align: center;">Caption: Weather screen displaying weather information retrieved from the OpenWeather API for the selected city.</p>
+  </div>
+
+</div>
 
 ## Version Control and Collaboration
 

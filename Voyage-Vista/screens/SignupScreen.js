@@ -63,7 +63,6 @@ export default function Signup({ navigation }) {
         posts: [],
         favorites: [],
         likes: [],
-        comments: [],
         birthday: birthday.toISOString(),
       };
 

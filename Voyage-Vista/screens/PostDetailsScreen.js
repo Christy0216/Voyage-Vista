@@ -57,6 +57,8 @@ const PostDetailsScreen = ({ route, navigation }) => {
   const [userDoc, setUserDoc] = useState(null);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
+  const [likeButtonText, setLikeButtonText] = useState("Like");
+  const [favoriteButtonText, setFavoriteButtonText] = useState("Favorite");
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -69,7 +71,9 @@ const PostDetailsScreen = ({ route, navigation }) => {
           const user = await getUser(uid);
           setUserDoc(user);
           setLiked(details.post.likedBy?.includes(currentUser.uid));
+          setLikeButtonText(liked ? "Unlike" : "Like");
           setFavorited(details.post.favoritedBy?.includes(currentUser.uid));
+          setFavoriteButtonText(favorited ? "Unfavorite" : "Favorite");
           fetchComments(postId);
 
           navigation.setOptions({
@@ -141,12 +145,14 @@ const PostDetailsScreen = ({ route, navigation }) => {
       await updateDoc(doc(db, "posts", postId), {
         likedBy: arrayUnion(auth.currentUser.uid),
       });
+      setLikeButtonText("Unlike");
     } else {
       await removeUserLike(userDoc.id, postId);
       await decrementLikesCount(postId);
       await updateDoc(doc(db, "posts", postId), {
         likedBy: arrayRemove(auth.currentUser.uid),
       });
+      setLikeButtonText("Like");
     }
   };
 
@@ -170,12 +176,14 @@ const PostDetailsScreen = ({ route, navigation }) => {
       await updateDoc(doc(db, "posts", postId), {
         favoritedBy: arrayUnion(auth.currentUser.uid),
       });
+      setFavoriteButtonText("Unfavorite");
     } else {
       await removeUserFavorite(userDoc.id, postId);
       await decrementFavoritesCount(postId);
       await updateDoc(doc(db, "posts", postId), {
         favoritedBy: arrayRemove(auth.currentUser.uid),
       });
+      setFavoriteButtonText("Favorite");
     }
   };
 
@@ -290,8 +298,8 @@ const PostDetailsScreen = ({ route, navigation }) => {
             ))}
         </ScrollView>
         <View style={styles.buttonsContainer}>
-          <ThemedButton title="Favorite" onPress={toggleFavorite} />
-          <ThemedButton title="Like" onPress={toggleLike} />
+          <ThemedButton title={favoriteButtonText} onPress={toggleFavorite} />
+          <ThemedButton title={likeButtonText} onPress={toggleLike} />
         </View>
         <View style={styles.commentsContainer}>
           <Text style={[styles.label, { color: theme.textColor }]}>

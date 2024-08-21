@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, FlatList, StyleSheet, Image } from "react-native";
+import { View, FlatList, StyleSheet, Image, Text } from "react-native";
 import { db } from "../firebase/firebaseSetUp";
 import { collection, onSnapshot } from "firebase/firestore";
 import PostItem from "../components/PostItem";
@@ -12,6 +12,7 @@ import { useFocusEffect } from "@react-navigation/native";
 const MainScreen = () => {
   const [posts, setPosts] = useState([]);
   const [profilePhoto, setProfilePhoto] = useState("");
+  const [userName, setUserName] = useState("");
   const { theme } = useTheme();
 
   const fetchProfilePhoto = async () => {
@@ -19,6 +20,7 @@ const MainScreen = () => {
       if (auth.currentUser) {
         const userData = await getUser(auth.currentUser.uid);
         if (userData) {
+          setUserName(userData.username);
           setProfilePhoto(userData.profilePicture || defaultPicture);
         }
       }
@@ -47,7 +49,7 @@ const MainScreen = () => {
           return {
             id: doc.id,
             ...postData,
-            userName: userData.name,
+            userName: userData.username,
             userProfilePicture: userData.profilePicture,
             photos: photos.map((url) => ({ url })), // Map each URL to an object if needed
           };
@@ -63,11 +65,18 @@ const MainScreen = () => {
     <View
       style={[styles.container, { backgroundColor: theme.backgroundColor }]}
     >
-      {profilePhoto ? (
-        <View style={styles.profileContainer}>
-          <Image source={{ uri: profilePhoto }} style={styles.profileImage} />
-        </View>
-      ) : null}
+      <View style={styles.loggedInUsercontainer}>
+        {profilePhoto ? (
+          <View style={styles.profileContainer}>
+            <Image source={{ uri: profilePhoto }} style={styles.profileImage} />
+          </View>
+        ) : null}
+        <Text
+          style={{ color: theme.textColor, fontWeight: "bold", fontSize: 20 }}
+        >
+          {userName}
+        </Text>
+      </View>
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
@@ -80,6 +89,10 @@ const MainScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loggedInUsercontainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   profileContainer: {
     alignItems: "flex-start",

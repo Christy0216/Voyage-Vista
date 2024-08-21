@@ -82,7 +82,6 @@ const MapScreen = ({ navigation }) => {
     }
   }, [location, weatherData]);
 
-
   const fetchCities = async (query) => {
     if (query.length > 2) {
       try {
@@ -258,11 +257,42 @@ const MapScreen = ({ navigation }) => {
     }
   };
 
+  // Callback function to update location, city name, and weather based on current user location
+  const updateLocation = async (latitude, longitude) => {
+    setLocation({ latitude, longitude });
+
+    try {
+      // Reverse geocode to get city name
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${MAP_API_KEY}`
+      );
+
+      if (response.data.results.length > 0) {
+        const addressComponents = response.data.results[0].address_components;
+        const cityComponent = addressComponents.find((component) =>
+          component.types.includes("locality")
+        );
+
+        if (cityComponent) {
+          const userCity = cityComponent.long_name;
+          setCityName(userCity);
+
+          const placeId = await getPlaceIdFromCityName(userCity);
+          if (placeId) {
+            setCityPlaceId(placeId);
+            fetchWeather(latitude, longitude);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error updating location:", error);
+    }
+  };
+
   return (
     <View
       style={[styles.container, { backgroundColor: theme.backgroundColor }]}
     >
-      {/* City selection dropdown with dynamic search */}
       <DropDownPicker
         open={isModalVisible}
         value={cityPlaceId}
@@ -274,7 +304,7 @@ const MapScreen = ({ navigation }) => {
         searchPlaceholder="Search for a city"
         placeholder="Select a city"
         onChangeValue={handleSelectCity}
-        onChangeSearchText={fetchCities} // Fetch cities dynamically as the user types
+        onChangeSearchText={fetchCities}
         style={styles.dropdown}
         dropDownContainerStyle={{ backgroundColor: theme.backgroundColor }}
         textStyle={{ color: theme.textColor }}
@@ -283,7 +313,6 @@ const MapScreen = ({ navigation }) => {
         }}
       />
 
-      {/* Weather summary */}
       <TouchableOpacity onPress={handleWeatherSummaryPress}>
         <View style={[styles.weatherSummaryContainer, {backgroundColor: theme.postItemBackgroundColor}]}>
           <Text style={[styles.weatherSummaryText, { color: theme.textColor }]}>
@@ -313,17 +342,14 @@ const MapScreen = ({ navigation }) => {
         </View>
       </TouchableOpacity>
 
-      {/* Map view */}
       <View style={styles.mapContainer}>
-        <Map location={location} />
+        <Map location={location} onCenterUser={updateLocation} />
       </View>
 
-      {/* Conditional rendering of NotificationManager */}
       {weatherData && location && (
         <NotificationManager location={location} />
       )}
     </View>
-    
   );
 };
 
@@ -374,7 +400,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   mapContainer: {
-    height: 400,  // Increased height of the map
+    height: 400,
     backgroundColor: "lightgray",
     borderRadius: 10,
     overflow: "hidden",

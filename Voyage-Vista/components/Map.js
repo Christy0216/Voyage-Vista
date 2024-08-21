@@ -20,13 +20,13 @@ function formatDate(date) {
     return date.toLocaleString(); // Customize this if you need a specific format
 }
 
-export const Map = ({ location }) => {
+export const Map = ({ location, onCenterUser }) => {
     const [userLocation, setUserLocation] = useState(null);
     const [visiblePosts, setVisiblePosts] = useState([]);
     const [selectedPost, setSelectedPost] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
     const mapRef = useRef(null);
-    const navigation = useNavigation();  // Use the navigation hook
+    const navigation = useNavigation();
 
     const centerMapOnUser = async () => {
         try {
@@ -52,6 +52,9 @@ export const Map = ({ location }) => {
             if (mapRef.current) {
                 mapRef.current.animateToRegion(newRegion, 1000);
             }
+
+            // Call the callback function passed from MapScreen
+            onCenterUser(loc.coords.latitude, loc.coords.longitude);
         } catch (error) {
             console.error('Error getting user location:', error);
         }
@@ -88,7 +91,6 @@ export const Map = ({ location }) => {
         }
     }, [location]);
 
-    // Function to apply a slight offset to markers that are very close to each other
     const applyOffsetToCloseMarkers = (posts) => {
         const offset = 0.0002; // Offset value (adjust based on zoom level)
         return posts.map((post, index, array) => {
@@ -113,8 +115,8 @@ export const Map = ({ location }) => {
     };
 
     const navigateToDetailPage = () => {
-        setModalVisible(false);  // Close the modal
-        navigation.navigate('PostDetailsScreen', { postId: selectedPost.id });  // Navigate to the detail page with postId
+        setModalVisible(false);
+        navigation.navigate('PostDetailsScreen', { postId: selectedPost.id });
     };
 
     return (
@@ -151,7 +153,6 @@ export const Map = ({ location }) => {
                 <Ionicons name="locate-outline" size={24} color="white" />
             </TouchableOpacity>
 
-            {/* Modal for displaying post details */}
             {selectedPost && (
                 <Modal
                     animationType="slide"

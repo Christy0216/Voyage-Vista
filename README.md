@@ -133,3 +133,7 @@ All team members have cloned the repository, created their own branches for feat
 ### Note on Contributions
 
 If there are any contributions not directly reflected in GitHub commits (e.g., planning and design discussions), they are noted here along with the responsible team members.
+
+## Demo Video
+
+[Watch Demo](https://www.youtube.com/watch?v=Pt7oaMlksUk)

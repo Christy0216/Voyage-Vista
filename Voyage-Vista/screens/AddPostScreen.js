@@ -19,6 +19,7 @@ import { createPost, updatePost } from "../firebase/firebasePostHelper";
 import { MAP_API_KEY } from "@env";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase/firebaseSetUp";
+import { Alert } from "react-native";
 
 const AddPostScreen = ({ navigation }) => {
   const [story, setStory] = useState("");
@@ -88,6 +89,21 @@ const AddPostScreen = ({ navigation }) => {
     }
   };
 
+  const handleDeleteImage = (index) => {
+    Alert.alert("Delete Image", "Are you sure you want to delete this image?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        onPress: () => {
+          setImages((currentImages) =>
+            currentImages.filter((_, i) => i !== index)
+          );
+        },
+        style: "destructive",
+      },
+    ]);
+  };
+
   const handleGetLocation = async () => {
     try {
       const permission = await VerifyPermissions();
@@ -103,7 +119,7 @@ const AddPostScreen = ({ navigation }) => {
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&result_type=${addressType}&key=${MAP_API_KEY}`
       );
       const addressJson = await address.json();
-      
+
       setAddress(addressJson.results[0].formatted_address);
     } catch (error) {
       console.error("Error fetching location:", error);
@@ -141,11 +157,11 @@ const AddPostScreen = ({ navigation }) => {
         address,
         images: [], // This will be updated with the actual URLs after images are uploaded
       };
-  
+
       // Add the post to Firestore to get the postId
       const docRefId = await createPost(auth.currentUser.uid, post);
       console.log("Post created with ID:", docRefId);
-  
+
       // Now upload images to Firebase Storage using the postId
       const uploadedImageUrls = await Promise.all(
         images.map(async (imageUri, index) => {
@@ -155,16 +171,16 @@ const AddPostScreen = ({ navigation }) => {
           );
           const response = await fetch(imageUri);
           const blob = await response.blob();
-  
+
           await uploadBytes(imageRef, blob);
           return await getDownloadURL(imageRef);
         })
       );
-  
+
       // Update the post document with the image URLs
       await updatePost(docRefId, { images: uploadedImageUrls });
       console.log("Post images uploaded and post updated with image URLs.");
-  
+
       // Reset state after submission
       setStory("");
       setDestination("");
@@ -172,12 +188,15 @@ const AddPostScreen = ({ navigation }) => {
       setAddressType("street_address");
       setImages([]);
       setAddress("");
-      navigation.goBack();
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.navigate("Main");
+      }
     } catch (error) {
       console.error("Error adding post:", error);
     }
   };
-  
 
   const themedStyles = styles(theme);
 
@@ -190,7 +209,12 @@ const AddPostScreen = ({ navigation }) => {
           style={themedStyles.imageContainer}
         >
           {images.map((uri, index) => (
-            <Image key={index} source={{ uri }} style={themedStyles.image} />
+            <TouchableOpacity
+              key={index}
+              onLongPress={() => handleDeleteImage(index)}
+            >
+              <Image source={{ uri }} style={themedStyles.image} />
+            </TouchableOpacity>
           ))}
         </ScrollView>
         <TouchableOpacity

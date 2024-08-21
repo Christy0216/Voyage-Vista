@@ -21,7 +21,6 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { NotificationProvider } from "./context/NotificationContext";
 import * as Notifications from "expo-notifications";
 
-
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -81,21 +80,21 @@ export default function App() {
       }),
     });
 
-    if (Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('default', {
-        name: 'Default',
+    if (Platform.OS === "android") {
+      Notifications.setNotificationChannelAsync("default", {
+        name: "Default",
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
+        lightColor: "#FF231F7C",
       });
     }
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-        setIsUserAuthenticated(!!user);
-      });
-  
-      return unsubscribe; // Cleanup subscription on unmount
-    }, []);
+      setIsUserAuthenticated(!!user);
+    });
+
+    return unsubscribe; // Cleanup subscription on unmount
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {

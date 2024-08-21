@@ -285,7 +285,7 @@ const MapScreen = ({ navigation }) => {
 
       {/* Weather summary */}
       <TouchableOpacity onPress={handleWeatherSummaryPress}>
-        <View style={[styles.weatherSummaryContainer, {backgroundColor: theme.inputBackgroundColor}]}>
+        <View style={[styles.weatherSummaryContainer, {backgroundColor: theme.postItemBackgroundColor}]}>
           <Text style={[styles.weatherSummaryText, { color: theme.textColor }]}>
             Weather Summary for {cityName}
           </Text>

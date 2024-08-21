@@ -21,7 +21,7 @@ const PostItem = ({ post }) => {
                     <Text style={{color: theme.textColor}}>{post.userName}</Text>
                 </View>
                 <Text style={{color: theme.textColor}}>{post.story}</Text>
-                <View style={{color: theme.textColor}}>
+                <View style={styles.countsContainer}>
                     <Text style={{color: theme.textColor}}>Favorites: {post.favoritesCount || 0}</Text>
                     <Text style={{color: theme.textColor}}>Likes: {post.likesCount || 0}</Text>
                 </View>

@@ -6,6 +6,7 @@ export const themes = {
       buttonTextColor: "#fff", // White text on buttons
       inputBackgroundColor: "#fff", // White input fields for clarity
       placeholderTextColor: "#a9a9a9", // Dark gray for placeholders
+      postItemBackgroundColor: "#87CEEB", // Light blue post item background
     },
     dark: {
       backgroundColor: "#2F4F4F", // Dark slate gray background
@@ -14,6 +15,7 @@ export const themes = {
       buttonTextColor: "#fff", // White text on buttons
       inputBackgroundColor: "#555", // Slightly lighter gray for inputs
       placeholderTextColor: "#dcdcdc", // Light gray for placeholders
+      postItemBackgroundColor: "#4682B4", // Steel blue post item background
     },
   };
   

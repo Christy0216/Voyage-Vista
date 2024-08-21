@@ -30,6 +30,8 @@ export default function Signup({ navigation }) {
   };
 
   const signupHandler = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
     if (
       !email.trim() ||
       !password.trim() ||
@@ -39,14 +41,22 @@ export default function Signup({ navigation }) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
     }
+  
+    if (!emailRegex.test(email)) {
+      Alert.alert("Invalid Email", "Please enter a valid email address.");
+      return;
+    }
+  
     if (password.length < 6) {
       Alert.alert("Password too short");
       return;
     }
+  
     if (password !== confirmPassword) {
       Alert.alert("Passwords do not match");
       return;
     }
+  
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -54,7 +64,7 @@ export default function Signup({ navigation }) {
         password
       );
       const userId = userCredential.user.uid;
-
+  
       const userData = {
         userId: userId,
         username: userName,
@@ -65,7 +75,7 @@ export default function Signup({ navigation }) {
         likes: [],
         birthday: birthday.toISOString(),
       };
-
+  
       await createUser(userData);
       console.log("User created:", userCredential.user);
     } catch (error) {

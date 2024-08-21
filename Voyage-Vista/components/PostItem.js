@@ -1,14 +1,16 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from "../context/ThemeContext";
 
 
 const PostItem = ({ post }) => {
     const navigation = useNavigation();
+    const { theme } = useTheme();
 
     return (
-        <TouchableOpacity onPress={() => navigation.navigate('PostDetailsScreen', { postId: post.id })}>
-            <View style={styles.container}>
+        <TouchableOpacity  onPress={() => navigation.navigate('PostDetailsScreen', { postId: post.id })}>
+            <View style={[styles.container, {backgroundColor: theme.postItemBackgroundColor}]}>
                 <View style={styles.userContainer}>
                     {post.userProfilePicture && (
                         <Image
@@ -16,12 +18,12 @@ const PostItem = ({ post }) => {
                             style={styles.profilePicture}
                         />
                     )}
-                    <Text style={styles.userName}>{post.userName}</Text>
+                    <Text style={{color: theme.textColor}}>{post.userName}</Text>
                 </View>
-                <Text style={styles.story}>{post.story}</Text>
-                <View style={styles.countsContainer}>
-                    <Text style={styles.count}>Favorites: {post.favoritesCount || 0}</Text>
-                    <Text style={styles.count}>Likes: {post.likesCount || 0}</Text>
+                <Text style={{color: theme.textColor}}>{post.story}</Text>
+                <View style={{color: theme.textColor}}>
+                    <Text style={{color: theme.textColor}}>Favorites: {post.favoritesCount || 0}</Text>
+                    <Text style={{color: theme.textColor}}>Likes: {post.likesCount || 0}</Text>
                 </View>
                 {post.images && post.images.length > 0 && (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosContainer}>

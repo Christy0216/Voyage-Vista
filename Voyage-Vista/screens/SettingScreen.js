@@ -6,6 +6,7 @@ import { useNotification } from "../context/NotificationContext"; // Import useN
 import ThemedButton from "../components/ThemedButton";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebaseSetUp";
+import { themes } from '../styles/themes';
 
 const SettingsScreen = ({ navigation }) => {
   const { theme, toggleTheme } = useTheme();
@@ -23,7 +24,7 @@ const SettingsScreen = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <View style={styles.content}>
         <Text style={[styles.text, { color: theme.textColor }]}>Toggle Theme</Text>
-        <Switch onValueChange={toggleTheme} value={theme === theme.dark} />
+        <Switch onValueChange={toggleTheme} value={theme === themes.dark} />
         <Text style={[styles.text, { color: theme.textColor, marginTop: 20 }]}>
           Enable Notifications
         </Text>

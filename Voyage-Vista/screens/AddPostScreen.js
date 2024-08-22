@@ -20,8 +20,7 @@ import { MAP_API_KEY } from "@env";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase/firebaseSetUp";
 import { Alert } from "react-native";
-import * as ImageManipulator from 'expo-image-manipulator';
-
+import * as ImageManipulator from "expo-image-manipulator";
 
 const AddPostScreen = ({ navigation }) => {
   const [story, setStory] = useState("");
@@ -158,61 +157,62 @@ const AddPostScreen = ({ navigation }) => {
         address,
         images: [],
       };
-  
+
       const docRefId = await createPost(auth.currentUser.uid, post);
       console.log("Post created with ID:", docRefId);
-  
+
       const uploadedImageUrls = await Promise.all(
         images.map(async (imageUri, index) => {
           const resizedUri = await resizeImage(imageUri);
-  
-          const imageRef = ref(storage, `posts/${docRefId}/${Date.now()}_${index}`);
+
+          const imageRef = ref(
+            storage,
+            `posts/${docRefId}/${Date.now()}_${index}`
+          );
           const response = await fetch(resizedUri);
           const blob = await response.blob();
-  
+
           await uploadBytes(imageRef, blob);
           return await getDownloadURL(imageRef);
         })
       );
-  
+
       await updatePost(docRefId, { images: uploadedImageUrls });
       console.log("Post images uploaded and post updated with image URLs.");
-  
+
       setStory("");
       setDestination("");
       setLocation(null);
       setAddressType("street_address");
       setImages([]);
       setAddress("");
-      if (navigation.canGoBack()) {
-        navigation.goBack();
-      } else {
-        navigation.navigate("Main");
-      }
+
+      navigation.navigate("Main");
     } catch (error) {
       console.error("Error adding post:", error);
     }
   };
-  
+
   const resizeImage = async (uri) => {
     try {
       // Use ImageManipulator to get the original dimensions of the image
-      const { width: originalWidth, height: originalHeight } = await ImageManipulator.manipulateAsync(uri, []);
-  
+      const { width: originalWidth, height: originalHeight } =
+        await ImageManipulator.manipulateAsync(uri, []);
+
       // Calculate new dimensions while preserving the aspect ratio
       const targetWidth = 800; // Example target width
       const aspectRatio = originalWidth / originalHeight;
       const targetHeight = targetWidth / aspectRatio;
-  
+
       const resizedImage = await ImageManipulator.manipulateAsync(
         uri,
         [{ resize: { width: targetWidth, height: targetHeight } }],
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
-  
+
       return resizedImage.uri;
     } catch (err) {
-      console.error('Error resizing image:', err);
+      console.error("Error resizing image:", err);
       return uri; // Return original if resize fails
     }
   };
